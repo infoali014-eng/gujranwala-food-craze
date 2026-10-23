@@ -28,11 +28,10 @@ export function trackClick(button: string): void {
   if (typeof window === 'undefined') return;
 
   const rawApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
-  if (!rawApiUrl && process.env.NODE_ENV === 'production') {
-    return;
-  }
+  const apiUrl = (
+    rawApiUrl || (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api')
+  ).replace(/\/+$/, '');
 
-  const apiUrl = (rawApiUrl || 'http://localhost:5000/api').replace(/\/+$/, '');
   const source = getSource();
   const payload = JSON.stringify({ source, button });
   const endpoint = `${apiUrl}/track/click`;

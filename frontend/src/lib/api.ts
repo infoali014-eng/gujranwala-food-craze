@@ -44,7 +44,18 @@ export function getApiBaseUrl(): string | null {
     return envUrl.replace(/\/+$/, '');
   }
 
-  // Never fall back to localhost in production code
+  // Server-side runtime inside Next.js when deployed as Vercel Services
+  if (typeof window === 'undefined' && process.env.BACKEND_URL) {
+    const backendUrl = process.env.BACKEND_URL.replace(/\/+$/, '');
+    return `${backendUrl}/api`;
+  }
+
+  // In browser on Vercel, default to same-origin /api routed by Vercel services
+  if (typeof window !== 'undefined') {
+    return '/api';
+  }
+
+  // Never fall back to localhost in production server-side code
   if (process.env.NODE_ENV === 'production') {
     console.error('NEXT_PUBLIC_API_URL is not set');
     return null;
