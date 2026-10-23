@@ -17,9 +17,11 @@ import {
   getCurrentDeal,
   getMemberStats,
   getSiteLinks,
+  getAdminComplaints,
 } from '@/lib/api';
 import { getSupabaseClient } from '@/lib/supabaseClient';
 import { clearAdminCookie } from '@/lib/auth';
+import { AdminNav } from '@/components/admin/AdminNav';
 import { AdminReviewList } from '@/components/admin/AdminReviewList';
 import { AdminDealEditor } from '@/components/admin/AdminDealEditor';
 import { AdminStatsEditor } from '@/components/admin/AdminStatsEditor';
@@ -46,6 +48,7 @@ export default function AdminReviewsPage() {
   const [deal, setDeal] = useState<Deal | null>(null);
   const [stats, setStats] = useState<MemberStats | null>(null);
   const [links, setLinks] = useState<SiteLinks | null>(null);
+  const [newComplaintsCount, setNewComplaintsCount] = useState(0);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -103,12 +106,20 @@ export default function AdminReviewsPage() {
     setToken(activeToken);
 
     try {
-      const [reviewsRes, dealRes, statsRes, linksRes] = await Promise.all([
+      const [reviewsRes, dealRes, statsRes, linksRes, complaintsRes] = await Promise.all([
         getAdminReviews(activeToken, true),
         getCurrentDeal(),
         getMemberStats(),
         getSiteLinks(),
+        getAdminComplaints(activeToken, true),
       ]);
+
+      if (complaintsRes.data) {
+        const unread = complaintsRes.data.filter(
+          (c) => !c.deleted_at && c.status === 'new'
+        ).length;
+        setNewComplaintsCount(unread);
+      }
 
       if (reviewsRes.error) {
         const code = reviewsRes.error.code;
@@ -276,39 +287,12 @@ export default function AdminReviewsPage() {
 
   return (
     <div className="min-h-screen bg-[#F8EFE4] text-craze-dark selection:bg-craze-amber selection:text-craze-dark pb-20">
-      {/* Admin Navbar */}
-      <header className="sticky top-0 z-40 bg-craze-dark border-b-4 border-craze-amber text-craze-cream px-4 sm:px-6 py-3 shadow-md">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Logo size="sm" showSteam={false} />
-            <div>
-              <span className="font-heading text-xl uppercase tracking-wider text-craze-amber block leading-tight">
-                {COPY.brand.name}
-              </span>
-              <span className="text-[10px] font-sans text-craze-cream/70 uppercase tracking-widest block">
-                Control Panel • {userEmail}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="hidden sm:inline-flex items-center text-xs font-heading uppercase tracking-wider text-craze-cream/80 hover:text-white min-h-[48px]"
-            >
-              <span>Public Site</span>
-            </Link>
-
-            <button
-              onClick={handleLogout}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-sans font-bold uppercase tracking-wider text-craze-cream transition-colors min-h-[48px]"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
-      </header>
+      {/* Shared Admin Navigation */}
+      <AdminNav
+        userEmail={userEmail}
+        newComplaintsCount={newComplaintsCount}
+        onLogout={handleLogout}
+      />
 
       {/* Main Admin Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 space-y-6">

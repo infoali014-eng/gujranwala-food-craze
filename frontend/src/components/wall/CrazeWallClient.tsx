@@ -7,6 +7,8 @@ import { NoteBoard } from './NoteBoard';
 import { ReviewForm } from './ReviewForm';
 import { Logo } from '@/components/ui/Logo';
 import { FloatingWhatsApp } from '@/components/ui/FloatingWhatsApp';
+import { ComplaintModal } from './ComplaintModal';
+import { MessageSquareWarning } from 'lucide-react';
 import { COPY } from '@/lib/copy';
 
 interface CrazeWallClientProps {
@@ -21,6 +23,7 @@ export const CrazeWallClient: React.FC<CrazeWallClientProps> = ({
   const [reviews, setReviews] = useState<Review[]>(initialReviews);
   const [newNoteId, setNewNoteId] = useState<string | null>(null);
   const [hasPosted, setHasPosted] = useState(false);
+  const [isComplaintModalOpen, setIsComplaintModalOpen] = useState(false);
 
   // When a new note is created, prepend immediately to the board
   const handleReviewCreated = (newReview: Review) => {
@@ -109,7 +112,30 @@ export const CrazeWallClient: React.FC<CrazeWallClientProps> = ({
             onPostStatusChange={setHasPosted}
           />
         </section>
+
+        {/* 3. Complaints & Suggestions Entry Point (Subtle, modest secondary section) */}
+        <section className="max-w-xl mx-auto pt-4 pb-2 text-center">
+          <div className="bg-[#FAF3E8] border-2 border-dashed border-craze-amber/60 rounded-2xl p-5 sm:p-6 shadow-xs">
+            <p className="font-serif italic text-xs sm:text-sm text-craze-dark/85 max-w-md mx-auto mb-3.5 leading-relaxed">
+              {COPY.complaints.entryHeadline}
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsComplaintModalOpen(true)}
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-craze-red/40 bg-white hover:bg-craze-red/5 active:bg-craze-red/10 text-craze-red font-heading text-sm sm:text-base uppercase tracking-wider transition-colors min-h-[48px] shadow-xs cursor-pointer"
+            >
+              <MessageSquareWarning className="w-4 h-4 text-craze-red shrink-0" />
+              <span>{COPY.complaints.entryButton}</span>
+            </button>
+          </div>
+        </section>
       </main>
+
+      {/* Complaints Submission Modal */}
+      <ComplaintModal
+        isOpen={isComplaintModalOpen}
+        onClose={() => setIsComplaintModalOpen(false)}
+      />
 
       {/* Footer (No em/en dashes, no emojis) */}
       <footer className="mt-16 text-center text-xs text-craze-dark/60 font-sans px-4">

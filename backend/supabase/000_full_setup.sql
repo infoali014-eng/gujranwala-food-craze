@@ -425,3 +425,49 @@ FROM (
 WHERE NOT EXISTS (
   SELECT 1 FROM public.reviews
 );
+
+-- Complaints & Suggestions Table with Strict Privacy RLS
+CREATE TABLE IF NOT EXISTS public.complaints (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    reference_number TEXT NOT NULL UNIQUE,
+    type TEXT NOT NULL CHECK (type IN ('complaint', 'suggestion', 'other')),
+    name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    order_details TEXT,
+    message TEXT NOT NULL,
+    source TEXT DEFAULT 'direct',
+    status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'in_progress', 'resolved')),
+    admin_notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    deleted_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_complaints_status ON public.complaints (status);
+CREATE INDEX IF NOT EXISTS idx_complaints_created_at ON public.complaints (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_complaints_deleted_at ON public.complaints (deleted_at);
+CREATE INDEX IF NOT EXISTS idx_complaints_reference ON public.complaints (reference_number);
+
+ALTER TABLE public.complaints ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow public insert to complaints" ON public.complaints;
+DROP POLICY IF EXISTS "Allow admins full access to complaints" ON public.complaints;
+DROP POLICY IF EXISTS "Allow service_role full access to complaints" ON public.complaints;
+
+CREATE POLICY "Allow public insert to complaints"
+    ON public.complaints FOR INSERT
+    TO public, anon
+    WITH CHECK (true);
+
+CREATE POLICY "Allow admins full access to complaints"
+    ON public.complaints FOR ALL
+    TO authenticated
+    USING (EXISTS (SELECT 1 FROM public.admins WHERE user_id = auth.uid()))
+    WITH CHECK (EXISTS (SELECT 1 FROM public.admins WHERE user_id = auth.uid()));
+
+CREATE POLICY "Allow service_role full access to complaints"
+    ON public.complaints FOR ALL
+    TO service_role
+    USING (true)
+    WITH CHECK (true);
+

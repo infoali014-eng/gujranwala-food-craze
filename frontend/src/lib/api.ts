@@ -38,6 +38,25 @@ export interface SiteLinks {
   updated_at?: string;
 }
 
+export type ComplaintType = 'complaint' | 'suggestion' | 'other';
+export type ComplaintStatus = 'new' | 'in_progress' | 'resolved';
+
+export interface Complaint {
+  id: string;
+  reference_number: string;
+  type: ComplaintType;
+  name: string;
+  phone: string;
+  order_details?: string | null;
+  message: string;
+  source?: string | null;
+  status: ComplaintStatus;
+  admin_notes?: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
+}
+
 /**
  * Resolves the API base URL in one central function:
  * - If process.env.NEXT_PUBLIC_API_URL is set, use it (trim spaces and any trailing slash).
@@ -315,3 +334,75 @@ export async function updateSiteLinksApi(
     body: JSON.stringify(links),
   });
 }
+
+// Complaints & Suggestions Public API
+export async function createComplaint(complaint: {
+  type: ComplaintType;
+  name: string;
+  phone: string;
+  order_details?: string;
+  message: string;
+  source?: string;
+  website?: string;
+}) {
+  return request<{ reference_number: string }>('/complaints', {
+    method: 'POST',
+    body: JSON.stringify(complaint),
+  });
+}
+
+// Complaints & Suggestions Admin API
+export async function getAdminComplaints(token: string, includeDeleted = true) {
+  return request<Complaint[]>(`/admin/complaints?includeDeleted=${includeDeleted}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export async function updateComplaintStatusApi(
+  id: string,
+  status: ComplaintStatus,
+  token: string
+) {
+  return request<Complaint>(`/admin/complaints/${id}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ status }),
+  });
+}
+
+export async function updateComplaintNotesApi(
+  id: string,
+  admin_notes: string,
+  token: string
+) {
+  return request<Complaint>(`/admin/complaints/${id}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ admin_notes }),
+  });
+}
+
+export async function deleteComplaintApi(id: string, token: string) {
+  return request<{ success: boolean; message: string }>(`/admin/complaints/${id}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export async function restoreComplaintApi(id: string, token: string) {
+  return request<{ success: boolean; message: string }>(`/admin/complaints/${id}/restore`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+

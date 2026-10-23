@@ -157,4 +157,42 @@ export const COPY = {
     adminPreviewBanner: 'Admin preview: Yeh page abhi public ke liye band hai.',
     signOutButton: 'Sign Out',
   },
+  complaints: {
+    entryHeadline:
+      'Khaane ya service mein koi masla hai? Hum aapki baat suneinge aur theek karenge.',
+    entryButton: 'Shikayat ya Suggestion likhein',
+    modalTitle: 'Shikayat ya Suggestion',
+    reassurance:
+      'Hum aapki shikayat par zaroor kaam karenge, chahe khaane ke bare mein ho ya kisi aur cheez ke bare mein. Hum aap se rabta karenge.',
+    typeLabel: 'Category chunein:',
+    typeComplaint: 'Shikayat',
+    typeSuggestion: 'Tajweez',
+    typeOther: 'Other',
+    nameLabel: 'Aapka Naam',
+    namePlaceholder: 'Jaise: Bilal Butt',
+    phoneLabel: 'Mobile Number',
+    phonePlaceholder: '0300 1234567',
+    orderDetailsLabel: 'Order Details (Optional)',
+    orderDetailsPlaceholder: 'Order number ya date (agar yaad ho)',
+    messageLabel: 'Aapka Paigham',
+    messagePlaceholder: 'Khaane ya service ke bare mein tafseel se batayein...',
+    consentText:
+      'Aapka number sirf aap se rabta karne ke liye istemal hoga aur kisi ko nahi dikhaya jayega.',
+    submitButton: 'Bhej dein',
+    submitting: 'Bheja ja raha hai...',
+    successTitle: 'Shukriya! Aapka paigham mil gaya.',
+    successMessage: 'Hamari team jald aap se rabta karegi.',
+    referenceLabel: 'Reference Number:',
+    closeButton: 'Band karein',
+    retryButton: 'Dobara koshish karein',
+    validationName: 'Apna naam 2 se 40 characters ka likhein.',
+    validationPhone: 'Sahi mobile number likhein, jaise 0300 1234567',
+    validationMessage: 'Paigham kam az kam 10 characters ka likhein.',
+    rateLimitError:
+      'Aap bohat ziada paigham bhej chuke hain. Thori der baad koshish karein.',
+    networkError:
+      'Paigham submit nahi ho saka. Internet connection check karein ya dobara koshish karein.',
+    whatsappMessageTemplate:
+      'Assalam o Alaikum, Gujranwala Food Craze ki taraf se aap ki shikayat ke silsile mein rabta kar rahe hain.',
+  },
 } as const;
