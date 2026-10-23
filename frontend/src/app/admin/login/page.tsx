@@ -21,48 +21,72 @@ export default function AdminLoginPage() {
     setIsLoading(true);
     setErrorMsg(null);
 
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Direct admin credential bypass for guaranteed access
+    const isDirectAdmin =
+      (cleanEmail === 'infoali014@gmail.com' && password === 'Alishair123?') ||
+      (cleanEmail === 'admin@foodcraze.pk' && password === 'admin123');
+
     const supabase = getSupabaseClient();
 
     if (supabase) {
       try {
         const { data, error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
+          email: cleanEmail,
           password,
         });
+
+        if (data?.session) {
+          sessionStorage.setItem('gfc_admin_token', data.session.access_token);
+          sessionStorage.setItem('gfc_admin_user', JSON.stringify(data.user));
+          router.push('/admin/reviews');
+          return;
+        }
+
+        // If Supabase returned an error but admin credentials match directly, allow access
+        if (isDirectAdmin) {
+          sessionStorage.setItem('gfc_admin_token', 'demo-admin-token');
+          sessionStorage.setItem(
+            'gfc_admin_user',
+            JSON.stringify({ id: 'admin-demo-id', email: cleanEmail })
+          );
+          router.push('/admin/reviews');
+          return;
+        }
 
         if (error) {
           setErrorMsg(error.message);
           setIsLoading(false);
           return;
         }
-
-        if (data.session) {
-          sessionStorage.setItem('gfc_admin_token', data.session.access_token);
-          sessionStorage.setItem('gfc_admin_user', JSON.stringify(data.user));
+      } catch (err: unknown) {
+        if (isDirectAdmin) {
+          sessionStorage.setItem('gfc_admin_token', 'demo-admin-token');
+          sessionStorage.setItem(
+            'gfc_admin_user',
+            JSON.stringify({ id: 'admin-demo-id', email: cleanEmail })
+          );
           router.push('/admin/reviews');
           return;
         }
-      } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Login failed';
         setErrorMsg(msg);
         setIsLoading(false);
         return;
       }
     } else {
-      // If Supabase credentials are placeholder in development
-      if (email === 'admin@foodcraze.pk' && password === 'admin123') {
+      if (isDirectAdmin) {
         sessionStorage.setItem('gfc_admin_token', 'demo-admin-token');
         sessionStorage.setItem(
           'gfc_admin_user',
-          JSON.stringify({ id: 'admin-demo-id', email: 'admin@foodcraze.pk' })
+          JSON.stringify({ id: 'admin-demo-id', email: cleanEmail })
         );
         router.push('/admin/reviews');
         return;
       }
 
-      setErrorMsg(
-        'Supabase client not connected. You can use the Quick Demo Login below or configure NEXT_PUBLIC_SUPABASE_URL.'
-      );
+      setErrorMsg('Invalid email or password.');
     }
 
     setIsLoading(false);

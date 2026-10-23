@@ -16,9 +16,9 @@ const config: Config = {
         'craze-dark': '#2B0A0C',
       },
       fontFamily: {
-        heading: ['var(--font-bebas)', 'var(--font-oswald)', 'sans-serif'],
-        serif: ['var(--font-lora)', 'serif'],
-        sans: ['var(--font-inter)', 'sans-serif'],
+        heading: ['var(--font-bebas)', 'Bebas Neue', 'Oswald', 'Impact', 'sans-serif'],
+        serif: ['var(--font-lora)', 'Lora', 'Georgia', 'serif'],
+        sans: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         'chunky': '0 6px 0 0 #8F0A13',
