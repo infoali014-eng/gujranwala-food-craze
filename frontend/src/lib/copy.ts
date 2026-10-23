@@ -5,6 +5,10 @@ export type Language = 'roman' | 'urdu';
 // "Join the Crazers Family"
 // "Hum Sab Crazers Hain"
 
+// Alternative headline options for Unavailable / Coming Soon page:
+// Alternative 1: "Yeh Daawat Abhi Tayyar Ho Rahi Hai" (This feast is currently being prepared)
+// Alternative 2: "Thora Sa Sabar, Asal Zaiqa Raste Mein Hai" (A little patience, authentic taste is on the way)
+
 // Backup WhatsApp CTA wording options:
 // "Join the WhatsApp Group for Insider Deals"
 // "Unlock Member-Only Deals on WhatsApp"
@@ -137,5 +141,20 @@ export const COPY = {
     copyright: `${new Date().getFullYear()} Gujranwala Food Craze. All rights reserved.`,
     madeWith: 'Pyaar aur zaiqay se banaya gaya',
     madeWith_ur: 'پیار اور ذائقے سے تیار کردہ',
+  },
+  unavailable: {
+    badge: '404: Page Under Construction',
+    title: 'Yeh Page Abhi Tayyar Nahi Hai',
+    subtitle: 'This page is not available right now.',
+    cookingTitle: 'Kuch Zabardast Pak Raha Hai',
+    cookingSubtitle: 'Something amazing is cooking',
+    teaser: 'Naye deals, naya menu, aur bohat kuch. Bas thora sa intezar.',
+    progressLabel: 'Handi tayyar ho rahi hai...',
+    progressSubtext: 'Fresh recipes and deals are simmering in our kitchen',
+    crazeWallButton: 'Craze Wall par jayein',
+    whatsappButton: 'Join the WhatsApp Group for Exclusive Deals',
+    adminLoginText: 'Admin login',
+    adminPreviewBanner: 'Admin preview: Yeh page abhi public ke liye band hai.',
+    signOutButton: 'Sign Out',
   },
 } as const;

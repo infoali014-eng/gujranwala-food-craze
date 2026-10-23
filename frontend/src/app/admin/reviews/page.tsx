@@ -19,6 +19,7 @@ import {
   getSiteLinks,
 } from '@/lib/api';
 import { getSupabaseClient } from '@/lib/supabaseClient';
+import { clearAdminCookie } from '@/lib/auth';
 import { AdminReviewList } from '@/components/admin/AdminReviewList';
 import { AdminDealEditor } from '@/components/admin/AdminDealEditor';
 import { AdminStatsEditor } from '@/components/admin/AdminStatsEditor';
@@ -82,6 +83,7 @@ export default function AdminReviewsPage() {
     }
     sessionStorage.removeItem('gfc_admin_token');
     sessionStorage.removeItem('gfc_admin_user');
+    clearAdminCookie();
     router.push('/admin/login');
   }, [router]);
 

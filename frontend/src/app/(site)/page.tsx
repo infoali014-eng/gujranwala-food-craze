@@ -1,5 +1,9 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
+import { notFound } from 'next/navigation';
+import { isValidAdminToken, ADMIN_COOKIE_NAME } from '@/lib/auth';
+import { AdminPreviewBar } from '@/components/admin/AdminPreviewBar';
 import { Hero } from '@/components/landing/Hero';
 import { WhyJoin } from '@/components/landing/WhyJoin';
 import { DealBanner } from '@/components/landing/DealBanner';
@@ -11,27 +15,46 @@ import { FloatingWhatsApp } from '@/components/ui/FloatingWhatsApp';
 import { LandingTracker } from '@/components/landing/LandingTracker';
 import { Deal, Review, getCurrentDeal, getMemberStats, getReviews } from '@/lib/api';
 
-export const metadata: Metadata = {
-  title: 'Gujranwala Food Craze: Join the Craze! VIP WhatsApp Community',
-  description:
-    'Scan me! Get weekly food deals straight to your WhatsApp. Enjoy authentic Punjabi Karahi, Handi, Kebabs, and more in Gujranwala, Pakistan.',
-  openGraph: {
-    title: 'Gujranwala Food Craze: The taste of Punjab',
-    description: 'New deals every week, seedha aapke WhatsApp par! Join our food lover community.',
-    url: 'https://gujranwalafoodcraze.com',
-    siteName: 'Gujranwala Food Craze',
-    images: [
-      {
-        url: '/logo.png',
-        width: 344,
-        height: 344,
-        alt: 'Gujranwala Food Craze Logo',
+export const dynamic = 'force-dynamic';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const cookieStore = cookies();
+  const adminToken = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
+
+  if (!isValidAdminToken(adminToken)) {
+    return {
+      title: 'Page Unavailable | Gujranwala Food Craze',
+      description:
+        'This page is currently being prepared. Check out customer reviews on the Craze Wall or join our WhatsApp community.',
+      robots: {
+        index: false,
+        follow: false,
       },
-    ],
-    locale: 'en_PK',
-    type: 'website',
-  },
-};
+    };
+  }
+
+  return {
+    title: 'Gujranwala Food Craze: Join the Craze! VIP WhatsApp Community',
+    description:
+      'Scan me! Get weekly food deals straight to your WhatsApp. Enjoy authentic Punjabi Karahi, Handi, Kebabs, and more in Gujranwala, Pakistan.',
+    openGraph: {
+      title: 'Gujranwala Food Craze: The taste of Punjab',
+      description: 'New deals every week, seedha aapke WhatsApp par! Join our food lover community.',
+      url: 'https://gujranwalafoodcraze.com',
+      siteName: 'Gujranwala Food Craze',
+      images: [
+        {
+          url: '/logo.png',
+          width: 344,
+          height: 344,
+          alt: 'Gujranwala Food Craze Logo',
+        },
+      ],
+      locale: 'en_PK',
+      type: 'website',
+    },
+  };
+}
 
 // Fallback data for ultra-fast load & offline resilience
 const fallbackDeal: Deal = {
@@ -108,35 +131,47 @@ const fallbackReviews: Review[] = [
   },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const cookieStore = cookies();
+  const adminToken = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
+
+  // Enforce access rule: Home page is restricted to verified administrators.
+  // Normal visitors receive a genuine 404 response with the custom unavailable page.
+  if (!isValidAdminToken(adminToken)) {
+    notFound();
+  }
+
   return (
-    <main className="min-h-screen bg-craze-cream text-craze-dark selection:bg-craze-amber selection:text-craze-dark">
-      {/* Client-side URL source attribution tracker */}
-      <LandingTracker />
+    <>
+      <AdminPreviewBar />
+      <main className="min-h-screen bg-craze-cream text-craze-dark selection:bg-craze-amber selection:text-craze-dark">
+        {/* Client-side URL source attribution tracker */}
+        <LandingTracker />
 
-      {/* 1. Hero on red background */}
-      <Hero memberCount={312} />
+        {/* 1. Hero on red background */}
+        <Hero memberCount={312} />
 
-      {/* 2. Why join 3 cards */}
-      <WhyJoin />
+        {/* 2. Why join 3 cards */}
+        <WhyJoin />
 
-      {/* 3. Weekly deal banner with countdown */}
-      <DealBanner initialDeal={fallbackDeal} />
+        {/* 3. Weekly deal banner with countdown */}
+        <DealBanner initialDeal={fallbackDeal} />
 
-      {/* 4. Live member counter with count-up animation */}
-      <MemberCounter targetCount={312} />
+        {/* 4. Live member counter with count-up animation */}
+        <MemberCounter targetCount={312} />
 
-      {/* 5. Menu highlights carousel */}
-      <MenuCarousel />
+        {/* 5. Menu highlights carousel */}
+        <MenuCarousel />
 
-      {/* 6. Craze Wall preview (6 latest sticky notes) */}
-      <WallPreview initialReviews={fallbackReviews} />
+        {/* 6. Craze Wall preview (6 latest sticky notes) */}
+        <WallPreview initialReviews={fallbackReviews} />
 
-      {/* 7. Footer */}
-      <Footer />
+        {/* 7. Footer */}
+        <Footer />
 
-      {/* Floating mobile WhatsApp button */}
-      <FloatingWhatsApp />
-    </main>
+        {/* Floating mobile WhatsApp button */}
+        <FloatingWhatsApp />
+      </main>
+    </>
   );
 }

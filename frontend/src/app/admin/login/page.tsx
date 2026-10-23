@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/Button';
 import { getSupabaseClient } from '@/lib/supabaseClient';
+import { setAdminCookie } from '@/lib/auth';
 import { Lock, Mail, AlertCircle, KeyRound } from 'lucide-react';
 import { COPY } from '@/lib/copy';
 
@@ -40,6 +41,7 @@ export default function AdminLoginPage() {
         if (data?.session) {
           sessionStorage.setItem('gfc_admin_token', data.session.access_token);
           sessionStorage.setItem('gfc_admin_user', JSON.stringify(data.user));
+          setAdminCookie(data.session.access_token);
           router.push('/admin/reviews');
           return;
         }
@@ -51,6 +53,7 @@ export default function AdminLoginPage() {
             'gfc_admin_user',
             JSON.stringify({ id: 'admin-demo-id', email: cleanEmail })
           );
+          setAdminCookie('demo-admin-token');
           router.push('/admin/reviews');
           return;
         }
@@ -67,6 +70,7 @@ export default function AdminLoginPage() {
             'gfc_admin_user',
             JSON.stringify({ id: 'admin-demo-id', email: cleanEmail })
           );
+          setAdminCookie('demo-admin-token');
           router.push('/admin/reviews');
           return;
         }
@@ -82,6 +86,7 @@ export default function AdminLoginPage() {
           'gfc_admin_user',
           JSON.stringify({ id: 'admin-demo-id', email: cleanEmail })
         );
+        setAdminCookie('demo-admin-token');
         router.push('/admin/reviews');
         return;
       }
@@ -98,6 +103,7 @@ export default function AdminLoginPage() {
       'gfc_admin_user',
       JSON.stringify({ id: 'admin-demo-id', email: 'admin@foodcraze.pk' })
     );
+    setAdminCookie('demo-admin-token');
     router.push('/admin/reviews');
   };
 
