@@ -138,26 +138,32 @@ export async function insertReview(data: {
   const supabase = getSupabase();
 
   if (supabase) {
-    const { data: inserted, error } = await supabase
-      .from('reviews')
-      .insert({
-        name: data.name,
-        rating: data.rating,
-        message: data.message,
-        note_color: data.note_color,
-        source: data.source || 'direct',
-      })
-      .select('id, name, rating, message, note_color, created_at')
-      .single();
+    try {
+      const { data: inserted, error } = await supabase
+        .from('reviews')
+        .insert({
+          name: data.name,
+          rating: data.rating,
+          message: data.message,
+          note_color: data.note_color,
+          source: data.source || 'direct',
+        })
+        .select('id, name, rating, message, note_color, created_at')
+        .single();
 
-    if (error) {
-      throw new Error(`Database error creating review: ${error.message}`);
+      if (!error && inserted) {
+        return inserted as ReviewRecord;
+      }
+
+      if (error) {
+        console.error(`[Supabase insertReview Error]: ${error.message}`);
+      }
+    } catch (err) {
+      console.error('[Supabase insertReview Exception]:', err);
     }
-
-    return inserted as ReviewRecord;
   }
 
-  // In-memory fallback
+  // Fallback to in-memory store so posting reviews never crashes
   const newReview: ReviewRecord = {
     id: `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     name: data.name,
