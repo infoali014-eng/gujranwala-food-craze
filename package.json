@@ -1,0 +1,15 @@
+{
+  "name": "gujranwala-food-craze-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo for Gujranwala Food Craze: Join the Craze landing site",
+  "scripts": {
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "lint:backend": "npm --prefix backend run lint",
+    "lint:frontend": "npm --prefix frontend run lint"
+  }
+}

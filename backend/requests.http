@@ -1,0 +1,109 @@
+### Gujranwala Food Craze API — Test Requests
+@baseUrl = http://localhost:5000/api
+
+### 1. Health Check
+GET {{baseUrl}}/health
+Accept: application/json
+
+### 2. Get Live Reviews (Default limit 20, newest first)
+GET {{baseUrl}}/reviews
+Accept: application/json
+
+### 3. Get Reviews with Custom Limit (Pagination test)
+GET {{baseUrl}}/reviews?limit=3
+Accept: application/json
+
+### 4. Create a New Review (Valid submission)
+POST {{baseUrl}}/reviews
+Content-Type: application/json
+
+{
+  "name": "Kashif Mughal",
+  "rating": 5,
+  "message": "Mutton champ aur chicken karahi dono lajawab the! Bohat fresh aur lazeez.",
+  "note_color": "amber",
+  "source": "qr"
+}
+
+### 5. Bot Spam Check (Honeypot field 'website' filled -> should be rejected)
+POST {{baseUrl}}/reviews
+Content-Type: application/json
+
+{
+  "name": "Spam Bot",
+  "rating": 5,
+  "message": "Click here for cheap products http://spam.xyz",
+  "note_color": "cream",
+  "website": "http://spambot.com"
+}
+
+### 6. Profanity Check (Inappropriate words -> should return 400 validation error)
+POST {{baseUrl}}/reviews
+Content-Type: application/json
+
+{
+  "name": "Bad Actor",
+  "rating": 1,
+  "message": "Bakwas aur harami food tha",
+  "note_color": "red"
+}
+
+### 7. Get Current Weekly Deal
+GET {{baseUrl}}/deals/current
+Accept: application/json
+
+### 8. Get Member Count Stats
+GET {{baseUrl}}/stats/members
+Accept: application/json
+
+### 9. Track CTA Click
+POST {{baseUrl}}/track/click
+Content-Type: application/json
+
+{
+  "source": "qr",
+  "button": "hero_whatsapp_join"
+}
+
+### 10. Admin: Get Reviews without Auth (Should return 401 Unauthorized)
+GET {{baseUrl}}/admin/reviews
+Accept: application/json
+
+### 11. Admin: Get Reviews with Token (includeDeleted=true)
+GET {{baseUrl}}/admin/reviews?includeDeleted=true
+Authorization: Bearer demo-admin-token
+Accept: application/json
+
+### 12. Admin: Soft Delete a Review
+DELETE {{baseUrl}}/admin/reviews/f47ac10b-58cc-4372-a567-0e02b2c3d479
+Authorization: Bearer demo-admin-token
+Accept: application/json
+
+### 13. Admin: Restore Soft-Deleted Review
+POST {{baseUrl}}/admin/reviews/f47ac10b-58cc-4372-a567-0e02b2c3d479/restore
+Authorization: Bearer demo-admin-token
+Accept: application/json
+
+### 14. Admin: Update Weekly Deal
+PUT {{baseUrl}}/admin/deal
+Authorization: Bearer demo-admin-token
+Content-Type: application/json
+
+{
+  "title": "Super Weekend Karahi Combo",
+  "description": "1.5KG Desi Murgh Karahi + 6 Roghni Naan + Special Mint Raita + Salad + 2L Drink",
+  "price_text": "Rs. 2,450 (Save Rs. 550)",
+  "valid_until": "2026-11-01T23:59:59Z",
+  "is_active": true
+}
+
+### 15. Admin: Update Member Count Stats
+PUT {{baseUrl}}/admin/stats/members
+Authorization: Bearer demo-admin-token
+Content-Type: application/json
+
+{
+  "joined_count": 350,
+  "display_boost": 50
+}
+
