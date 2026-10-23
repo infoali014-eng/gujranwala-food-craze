@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 import { Pin, MessageCircle, Flame, Sparkles, ChefHat } from 'lucide-react';
 import { COPY } from '@/lib/copy';
+import { HARDCODED_WHATSAPP_LINK, resolveWhatsAppLink } from '@/lib/constants';
 import { UnavailableTracker } from '@/components/unavailable/UnavailableTracker';
 
 export const metadata: Metadata = {
@@ -17,9 +18,9 @@ export const metadata: Metadata = {
 };
 
 export default function NotFoundPage() {
-  const whatsappUrl =
-    process.env.NEXT_PUBLIC_WHATSAPP_LINK ||
-    'https://chat.whatsapp.com/sample-gfc-invite';
+  const whatsappUrl = resolveWhatsAppLink(
+    process.env.NEXT_PUBLIC_WHATSAPP_LINK
+  );
 
   return (
     <>

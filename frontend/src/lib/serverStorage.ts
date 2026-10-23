@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { HARDCODED_WHATSAPP_LINK, resolveWhatsAppLink } from './constants';
 
 export interface ReviewRecord {
   id: string;
@@ -127,8 +128,7 @@ let inMemoryStats: MemberStatsRecord = {
 
 let inMemorySettings: SiteSettingsRecord = {
   id: 1,
-  whatsapp_link:
-    process.env.NEXT_PUBLIC_WHATSAPP_LINK || 'https://chat.whatsapp.com/sample-gfc-invite',
+  whatsapp_link: resolveWhatsAppLink(process.env.NEXT_PUBLIC_WHATSAPP_LINK),
   foodpanda_link: process.env.NEXT_PUBLIC_FOODPANDA_LINK || 'https://www.foodpanda.pk',
   updated_at: new Date().toISOString(),
 };
@@ -416,7 +416,10 @@ export async function getSiteSettings(): Promise<SiteSettingsRecord> {
         .maybeSingle();
 
       if (!error && data) {
-        inMemorySettings = data as SiteSettingsRecord;
+        inMemorySettings = {
+          ...data,
+          whatsapp_link: resolveWhatsAppLink(data.whatsapp_link),
+        } as SiteSettingsRecord;
         return inMemorySettings;
       }
     } catch {
@@ -441,7 +444,10 @@ export async function updateSiteSettings(
         .single();
 
       if (!error && data) {
-        inMemorySettings = data as SiteSettingsRecord;
+        inMemorySettings = {
+          ...data,
+          whatsapp_link: resolveWhatsAppLink(data.whatsapp_link),
+        } as SiteSettingsRecord;
         return inMemorySettings;
       }
     } catch {

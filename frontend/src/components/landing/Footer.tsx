@@ -9,11 +9,13 @@ import { COPY } from '@/lib/copy';
 import { trackClick } from '@/lib/tracking';
 import { fireBrandConfetti } from '@/components/ui/Confetti';
 import { useSiteLinks } from '@/context/SiteLinksContext';
+import { HARDCODED_WHATSAPP_LINK, resolveWhatsAppLink } from '@/lib/constants';
 
 export const Footer: React.FC = () => {
   const { whatsapp_link } = useSiteLinks();
-  const whatsappUrl =
-    whatsapp_link || process.env.NEXT_PUBLIC_WHATSAPP_LINK || 'https://chat.whatsapp.com/sample-gfc-invite';
+  const whatsappUrl = resolveWhatsAppLink(
+    whatsapp_link || process.env.NEXT_PUBLIC_WHATSAPP_LINK
+  );
 
   const handleCtaClick = () => {
     fireBrandConfetti();

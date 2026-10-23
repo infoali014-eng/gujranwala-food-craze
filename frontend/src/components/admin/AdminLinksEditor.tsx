@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { SiteLinks } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Link2, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
+import { HARDCODED_WHATSAPP_LINK, resolveWhatsAppLink } from '@/lib/constants';
 
 interface AdminLinksEditorProps {
   currentLinks?: SiteLinks | null;
@@ -15,7 +16,7 @@ export const AdminLinksEditor: React.FC<AdminLinksEditorProps> = ({
   onSave,
 }) => {
   const [whatsappLink, setWhatsappLink] = useState(
-    currentLinks?.whatsapp_link || 'https://chat.whatsapp.com/sample-gfc-invite'
+    resolveWhatsAppLink(currentLinks?.whatsapp_link)
   );
   const [foodpandaLink, setFoodpandaLink] = useState(
     currentLinks?.foodpanda_link || 'https://www.foodpanda.pk'
@@ -27,7 +28,9 @@ export const AdminLinksEditor: React.FC<AdminLinksEditorProps> = ({
 
   useEffect(() => {
     if (currentLinks) {
-      if (currentLinks.whatsapp_link) setWhatsappLink(currentLinks.whatsapp_link);
+      if (currentLinks.whatsapp_link) {
+        setWhatsappLink(resolveWhatsAppLink(currentLinks.whatsapp_link));
+      }
       if (currentLinks.foodpanda_link) setFoodpandaLink(currentLinks.foodpanda_link);
     }
   }, [currentLinks]);

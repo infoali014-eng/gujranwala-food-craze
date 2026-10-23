@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS public.admins (
 -- Site Settings Table
 CREATE TABLE IF NOT EXISTS public.site_settings (
     id INT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
-    whatsapp_link TEXT NOT NULL DEFAULT 'https://chat.whatsapp.com/sample-gfc-invite',
+    whatsapp_link TEXT NOT NULL DEFAULT 'https://chat.whatsapp.com/B9mYGX1vmzx4OQQjUliwzQ?s=cl&p=a&mlu=4&ilr=4',
     foodpanda_link TEXT NOT NULL DEFAULT 'https://www.foodpanda.pk',
     updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
@@ -351,7 +351,7 @@ SET joined_count = EXCLUDED.joined_count;
 
 -- Site Settings
 INSERT INTO public.site_settings (id, whatsapp_link, foodpanda_link, updated_at)
-VALUES (1, 'https://chat.whatsapp.com/sample-gfc-invite', 'https://www.foodpanda.pk', timezone('utc'::text, now()))
+VALUES (1, 'https://chat.whatsapp.com/B9mYGX1vmzx4OQQjUliwzQ?s=cl&p=a&mlu=4&ilr=4', 'https://www.foodpanda.pk', timezone('utc'::text, now()))
 ON CONFLICT (id) DO NOTHING;
 
 -- Active Deal

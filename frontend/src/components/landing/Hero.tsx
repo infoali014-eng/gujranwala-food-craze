@@ -9,6 +9,7 @@ import { COPY, Language } from '@/lib/copy';
 import { trackClick } from '@/lib/tracking';
 import { fireBrandConfetti } from '@/components/ui/Confetti';
 import { useSiteLinks } from '@/context/SiteLinksContext';
+import { HARDCODED_WHATSAPP_LINK, resolveWhatsAppLink } from '@/lib/constants';
 
 interface HeroProps {
   memberCount?: number;
@@ -20,8 +21,9 @@ export const Hero: React.FC<HeroProps> = ({ memberCount = 312 }) => {
   const shouldReduceMotion = useReducedMotion();
 
   const { whatsapp_link } = useSiteLinks();
-  const whatsappUrl =
-    whatsapp_link || process.env.NEXT_PUBLIC_WHATSAPP_LINK || 'https://chat.whatsapp.com/sample-gfc-invite';
+  const whatsappUrl = resolveWhatsAppLink(
+    whatsapp_link || process.env.NEXT_PUBLIC_WHATSAPP_LINK
+  );
 
   // Automatically detect if local time is 6 PM (18:00) or later, or before 5 AM
   useEffect(() => {

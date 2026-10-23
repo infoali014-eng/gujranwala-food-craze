@@ -1,5 +1,8 @@
 import { getSupabase } from '../config/supabaseClient';
 
+export const HARDCODED_WHATSAPP_LINK =
+  'https://chat.whatsapp.com/B9mYGX1vmzx4OQQjUliwzQ?s=cl&p=a&mlu=4&ilr=4';
+
 export interface SiteSettings {
   id: number;
   whatsapp_link: string;
@@ -7,9 +10,22 @@ export interface SiteSettings {
   updated_at: string;
 }
 
+function resolveWhatsApp(link?: string | null): string {
+  if (
+    link &&
+    typeof link === 'string' &&
+    link.trim().length > 0 &&
+    !link.includes('sample-gfc-invite') &&
+    !link.includes('your-group-invite')
+  ) {
+    return link.trim();
+  }
+  return HARDCODED_WHATSAPP_LINK;
+}
+
 let inMemorySettings: SiteSettings = {
   id: 1,
-  whatsapp_link: process.env.NEXT_PUBLIC_WHATSAPP_LINK || 'https://chat.whatsapp.com/sample-gfc-invite',
+  whatsapp_link: resolveWhatsApp(process.env.NEXT_PUBLIC_WHATSAPP_LINK),
   foodpanda_link: process.env.NEXT_PUBLIC_FOODPANDA_LINK || 'https://www.foodpanda.pk',
   updated_at: new Date().toISOString(),
 };
@@ -26,7 +42,10 @@ export async function getSiteSettings(): Promise<SiteSettings> {
         .maybeSingle();
 
       if (!error && data) {
-        inMemorySettings = data as SiteSettings;
+        inMemorySettings = {
+          ...data,
+          whatsapp_link: resolveWhatsApp(data.whatsapp_link),
+        } as SiteSettings;
         return inMemorySettings;
       }
     } catch {

@@ -9,6 +9,7 @@ import { getSource, trackClick } from '@/lib/tracking';
 import { fireBrandConfetti } from '@/components/ui/Confetti';
 import { useSiteLinks } from '@/context/SiteLinksContext';
 import { COPY } from '@/lib/copy';
+import { HARDCODED_WHATSAPP_LINK, resolveWhatsAppLink } from '@/lib/constants';
 
 interface ReviewFormProps {
   onReviewCreated: (newReview: Review) => void;
@@ -37,8 +38,9 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
 
   const maxChars = 280;
   const { whatsapp_link } = useSiteLinks();
-  const whatsappUrl =
-    whatsapp_link || process.env.NEXT_PUBLIC_WHATSAPP_LINK || 'https://chat.whatsapp.com/sample-gfc-invite';
+  const whatsappUrl = resolveWhatsAppLink(
+    whatsapp_link || process.env.NEXT_PUBLIC_WHATSAPP_LINK
+  );
 
   // Check returning visitor state from localStorage
   useEffect(() => {
