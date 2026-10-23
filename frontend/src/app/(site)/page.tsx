@@ -9,7 +9,7 @@ import { WallPreview } from '@/components/landing/WallPreview';
 import { Footer } from '@/components/landing/Footer';
 import { FloatingWhatsApp } from '@/components/ui/FloatingWhatsApp';
 import { LandingTracker } from '@/components/landing/LandingTracker';
-import { Deal, Review } from '@/lib/api';
+import { Deal, Review, getApiBaseUrl } from '@/lib/api';
 
 export const metadata: Metadata = {
   title: 'Gujranwala Food Craze: Join the Craze! VIP WhatsApp Community',
@@ -109,7 +109,7 @@ const fallbackReviews: Review[] = [
 ];
 
 async function getInitialData() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiBaseUrl();
 
   try {
     const [dealRes, statsRes, reviewsRes] = await Promise.allSettled([

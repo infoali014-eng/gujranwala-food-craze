@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { CrazeWallClient } from '@/components/wall/CrazeWallClient';
-import { Review } from '@/lib/api';
+import { Review, getApiBaseUrl } from '@/lib/api';
 
 export const metadata: Metadata = {
   title: 'Craze Wall: Aapki Baat, Aapka Note | Gujranwala Food Craze',
@@ -73,7 +73,7 @@ const fallbackReviews: Review[] = [
 ];
 
 async function getInitialReviews() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const apiUrl = getApiBaseUrl();
 
   try {
     const res = await fetch(`${apiUrl}/reviews?limit=12`, {

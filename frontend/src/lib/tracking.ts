@@ -28,7 +28,7 @@ export function trackClick(button: string): void {
   if (typeof window === 'undefined') return;
 
   const source = getSource();
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const apiUrl = (process.env.NEXT_PUBLIC_API_URL || '/api').replace(/\/+$/, '');
   const payload = JSON.stringify({ source, button });
   const endpoint = `${apiUrl}/track/click`;
 

@@ -1,4 +1,24 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+export function getApiBaseUrl(): string {
+  // Server-side runtime inside Next.js (SSR / Server Components):
+  // Use Vercel service binding if available
+  if (typeof window === 'undefined' && process.env.BACKEND_URL) {
+    const backendUrl = process.env.BACKEND_URL.replace(/\/+$/, '');
+    return `${backendUrl}/api`;
+  }
+
+  // Explicit env override if set
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, '');
+  }
+
+  // In browser, default to same-origin relative /api routed by Vercel services
+  if (typeof window !== 'undefined') {
+    return '/api';
+  }
+
+  // Local development server fallback
+  return 'http://localhost:5000/api';
+}
 
 export interface ApiResponse<T> {
   data: T | null;
@@ -39,7 +59,9 @@ async function request<T>(
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   try {
-    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const baseUrl = getApiBaseUrl();
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const res = await fetch(`${baseUrl}${cleanEndpoint}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',

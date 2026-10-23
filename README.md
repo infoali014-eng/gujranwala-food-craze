@@ -149,38 +149,29 @@ Once added, log in at [http://localhost:3000/admin/login](http://localhost:3000/
 
 ## Step-by-Step Vercel Deployment Guide
 
-Deploy both applications as two separate, decoupled Vercel projects from this monorepo:
+Deploy this repository as a single Vercel project with multiple services using root `vercel.json`:
 
-### Project 1: Backend REST API
-1. In the [Vercel Dashboard](https://vercel.com), click **Add New** > **Project** and select your GitHub repository.
-2. Under **Root Directory**, click **Edit** and select `backend`.
-3. Framework Preset: **Other**.
-4. Add the following **Environment Variables**:
+### Unified Vercel Services Deployment
+1. In the [Vercel Dashboard](https://vercel.com), click **Add New** > **Project** and import `gujranwala-food-craze`.
+2. Keep the root directory as the repository root (do not change to a subdirectory; Vercel automatically detects root `vercel.json`).
+3. Add the following **Environment Variables**:
    - `PORT`: `5000`
    - `NODE_ENV`: `production`
-   - `FRONTEND_URL`: `https://your-frontend-domain.vercel.app` (or your custom domain `https://gujranwalafoodcraze.com`)
    - `SUPABASE_URL`: `https://your-project.supabase.co`
    - `SUPABASE_SERVICE_ROLE_KEY`: `your-supabase-service-role-secret-key` (Server-side only)
-5. Click **Deploy**.
-6. Note down your backend URL (e.g. `https://food-craze-api.vercel.app`). Verify by opening `https://food-craze-api.vercel.app/api/health`.
-
-### Project 2: Next.js Frontend
-1. Click **Add New** > **Project** and select the same repository.
-2. Under **Root Directory**, click **Edit** and select `frontend`.
-3. Framework Preset: **Next.js** (detected automatically).
-4. Add the following **Environment Variables**:
-   - `NEXT_PUBLIC_SITE_URL`: `https://your-frontend-domain.vercel.app` (or `https://gujranwalafoodcraze.com`)
-   - `NEXT_PUBLIC_API_URL`: `https://food-craze-api.vercel.app/api` (URL of Backend Project 1 + `/api`)
    - `NEXT_PUBLIC_WHATSAPP_LINK`: `https://chat.whatsapp.com/your-real-whatsapp-group-invite`
    - `NEXT_PUBLIC_FOODPANDA_LINK`: `https://www.foodpanda.pk/restaurant/your-id`
    - `NEXT_PUBLIC_SUPABASE_URL`: `https://your-project.supabase.co`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: `your-supabase-anon-public-key`
-5. Click **Deploy**.
+   *(Note: `BACKEND_URL` is automatically injected into the frontend by the Vercel service binding).*
+4. Click **Deploy**.
+5. Vercel builds both `backend` (Express) and `frontend` (Next.js) independently and routes:
+   - `/api/(.*)` to the `backend` service.
+   - `/(.*)` to the `frontend` service.
 
 ### Custom Domain Configuration (Optional)
-- Frontend: Add `gujranwalafoodcraze.com` in Vercel Project Settings > Domains.
-- Backend: Add `api.gujranwalafoodcraze.com` in Vercel Backend Project Settings > Domains.
-- Update `FRONTEND_URL` on the backend to `https://gujranwalafoodcraze.com`.
+- Add your custom domain (e.g. `gujranwalafoodcraze.com`) in Vercel Project Settings > Domains.
+- All frontend routes and `/api` backend endpoints share this single domain with zero CORS complications.
 
 ---
 

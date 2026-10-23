@@ -24,7 +24,11 @@ app.use(
       ) {
         return callback(null, true);
       }
-      if (origin === ENV.FRONTEND_URL) {
+      if (
+        origin === ENV.FRONTEND_URL ||
+        origin.endsWith('.vercel.app') ||
+        (ENV.FRONTEND_URL && origin.includes(ENV.FRONTEND_URL))
+      ) {
         return callback(null, true);
       }
       return callback(new Error(`CORS policy does not allow access from ${origin}`));
