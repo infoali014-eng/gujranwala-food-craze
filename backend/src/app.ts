@@ -6,6 +6,7 @@ import healthRoutes from './routes/health.routes';
 import reviewsRoutes from './routes/reviews.routes';
 import siteRoutes from './routes/site.routes';
 import adminRoutes from './routes/admin.routes';
+import complaintsRoutes from './routes/complaints.routes';
 import { checkDatabaseConfig } from './middleware/checkDatabaseConfig';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
@@ -135,6 +136,9 @@ app.get('/', (req: Request, res: Response) => {
 // Database-backed routes mounted on both prefixed and non-prefixed paths for flexible routing
 app.use('/api/reviews', checkDatabaseConfig, reviewsRoutes);
 app.use('/reviews', checkDatabaseConfig, reviewsRoutes);
+
+app.use('/api/complaints', checkDatabaseConfig, complaintsRoutes);
+app.use('/complaints', checkDatabaseConfig, complaintsRoutes);
 
 app.use('/api/admin', checkDatabaseConfig, adminRoutes);
 app.use('/admin', checkDatabaseConfig, adminRoutes);

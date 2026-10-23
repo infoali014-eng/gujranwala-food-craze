@@ -181,7 +181,8 @@ export const COPY = {
     submitButton: 'Bhej dein',
     submitting: 'Bheja ja raha hai...',
     successTitle: 'Shukriya! Aapka paigham mil gaya.',
-    successMessage: 'Hamari team jald aap se rabta karegi.',
+    successMessage:
+      'We are working on your complaint and soon we will contact you to solve your issue. Hamari team jald aap se rabta karegi.',
     referenceLabel: 'Reference Number:',
     closeButton: 'Band karein',
     retryButton: 'Dobara koshish karein',

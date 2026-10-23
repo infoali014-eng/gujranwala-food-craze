@@ -213,9 +213,11 @@ export const ComplaintModal: React.FC<ComplaintModalProps> = ({ isOpen, onClose 
                 {COPY.complaints.successTitle}
               </h3>
 
-              <p className="font-serif italic text-sm sm:text-base text-craze-dark/80 max-w-md mx-auto">
-                {COPY.complaints.successMessage}
-              </p>
+              <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-4 max-w-md mx-auto shadow-xs">
+                <p className="font-serif italic text-sm sm:text-base text-emerald-950 font-semibold leading-relaxed">
+                  {COPY.complaints.successMessage}
+                </p>
+              </div>
 
               {/* Reference Number Box */}
               <div className="my-6 p-4 rounded-2xl bg-[#FDEFDA] border-2 border-craze-amber inline-block min-w-[260px]">

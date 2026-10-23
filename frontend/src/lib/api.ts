@@ -344,65 +344,200 @@ export async function createComplaint(complaint: {
   message: string;
   source?: string;
   website?: string;
-}) {
-  return request<{ reference_number: string }>('/complaints', {
+}): Promise<ApiResponse<{ reference_number: string }>> {
+  // First attempt: call standard configured API (backend or relative /api)
+  const res = await request<{ reference_number: string }>('/complaints', {
     method: 'POST',
     body: JSON.stringify(complaint),
   });
+
+  if (!res.error) {
+    return res;
+  }
+
+  // Resilient fallback: If external backend fails, fall back to local Next.js /api/complaints
+  if (typeof window !== 'undefined') {
+    try {
+      const localRes = await fetch('/api/complaints', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(complaint),
+      });
+      const localJson = await localRes.json();
+      if (localRes.ok && localJson?.data) {
+        return { data: localJson.data, error: null };
+      }
+    } catch {
+      // Return original response error
+    }
+  }
+
+  return res;
 }
 
 // Complaints & Suggestions Admin API
-export async function getAdminComplaints(token: string, includeDeleted = true) {
-  return request<Complaint[]>(`/admin/complaints?includeDeleted=${includeDeleted}`, {
+export async function getAdminComplaints(token: string, includeDeleted = true): Promise<ApiResponse<Complaint[]>> {
+  const res = await request<Complaint[]>(`/admin/complaints?includeDeleted=${includeDeleted}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
+
+  if (!res.error) {
+    return res;
+  }
+
+  // Resilient fallback for admin
+  if (typeof window !== 'undefined') {
+    try {
+      const localRes = await fetch(`/api/admin/complaints?includeDeleted=${includeDeleted}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const localJson = await localRes.json();
+      if (localRes.ok && localJson?.data) {
+        return { data: localJson.data, error: null };
+      }
+    } catch {
+      // Fall through
+    }
+  }
+
+  return res;
 }
 
 export async function updateComplaintStatusApi(
   id: string,
   status: ComplaintStatus,
   token: string
-) {
-  return request<Complaint>(`/admin/complaints/${id}`, {
+): Promise<ApiResponse<Complaint>> {
+  const res = await request<Complaint>(`/admin/complaints/${id}`, {
     method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ status }),
   });
+
+  if (!res.error) return res;
+
+  if (typeof window !== 'undefined') {
+    try {
+      const localRes = await fetch(`/api/admin/complaints/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      });
+      const localJson = await localRes.json();
+      if (localRes.ok && localJson?.data) {
+        return { data: localJson.data, error: null };
+      }
+    } catch {
+      // Fall through
+    }
+  }
+
+  return res;
 }
 
 export async function updateComplaintNotesApi(
   id: string,
   admin_notes: string,
   token: string
-) {
-  return request<Complaint>(`/admin/complaints/${id}`, {
+): Promise<ApiResponse<Complaint>> {
+  const res = await request<Complaint>(`/admin/complaints/${id}`, {
     method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ admin_notes }),
   });
+
+  if (!res.error) return res;
+
+  if (typeof window !== 'undefined') {
+    try {
+      const localRes = await fetch(`/api/admin/complaints/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ admin_notes }),
+      });
+      const localJson = await localRes.json();
+      if (localRes.ok && localJson?.data) {
+        return { data: localJson.data, error: null };
+      }
+    } catch {
+      // Fall through
+    }
+  }
+
+  return res;
 }
 
-export async function deleteComplaintApi(id: string, token: string) {
-  return request<{ success: boolean; message: string }>(`/admin/complaints/${id}`, {
+export async function deleteComplaintApi(id: string, token: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
+  const res = await request<{ success: boolean; message: string }>(`/admin/complaints/${id}`, {
     method: 'DELETE',
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
+
+  if (!res.error) return res;
+
+  if (typeof window !== 'undefined') {
+    try {
+      const localRes = await fetch(`/api/admin/complaints/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const localJson = await localRes.json();
+      if (localRes.ok && localJson?.data) {
+        return { data: localJson.data, error: null };
+      }
+    } catch {
+      // Fall through
+    }
+  }
+
+  return res;
 }
 
-export async function restoreComplaintApi(id: string, token: string) {
-  return request<{ success: boolean; message: string }>(`/admin/complaints/${id}/restore`, {
+export async function restoreComplaintApi(id: string, token: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
+  const res = await request<{ success: boolean; message: string }>(`/admin/complaints/${id}/restore`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
+
+  if (!res.error) return res;
+
+  if (typeof window !== 'undefined') {
+    try {
+      const localRes = await fetch(`/api/admin/complaints/${id}/restore`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const localJson = await localRes.json();
+      if (localRes.ok && localJson?.data) {
+        return { data: localJson.data, error: null };
+      }
+    } catch {
+      // Fall through
+    }
+  }
+
+  return res;
 }
 

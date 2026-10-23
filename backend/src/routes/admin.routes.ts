@@ -14,6 +14,12 @@ import {
   updateMemberStatsHandler,
   updateSiteSettingsHandler,
 } from '../controllers/admin.controller';
+import {
+  getComplaintsHandler,
+  updateComplaintHandler,
+  deleteComplaintHandler,
+  restoreComplaintHandler,
+} from '../controllers/complaints.controller';
 import { asyncHandler } from '../utils/asyncHandler';
 
 const router = Router();
@@ -25,6 +31,12 @@ router.use(requireAdmin);
 router.get('/reviews', asyncHandler(getAdminReviewsHandler));
 router.delete('/reviews/:id', asyncHandler(deleteReviewHandler));
 router.post('/reviews/:id/restore', asyncHandler(restoreReviewHandler));
+
+// Complaints Inbox
+router.get('/complaints', asyncHandler(getComplaintsHandler));
+router.patch('/complaints/:id', asyncHandler(updateComplaintHandler));
+router.delete('/complaints/:id', asyncHandler(deleteComplaintHandler));
+router.post('/complaints/:id/restore', asyncHandler(restoreComplaintHandler));
 
 // Site Controls
 router.put('/deal', validate(updateDealSchema), asyncHandler(updateDealHandler));

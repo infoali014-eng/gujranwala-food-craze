@@ -549,30 +549,30 @@ export async function addComplaint(data: {
   const supabase = getSupabase();
   if (supabase) {
     try {
-      const { data: inserted, error } = await supabase
-        .from('complaints')
-        .insert({
-          reference_number: newRecord.reference_number,
-          type: newRecord.type,
-          name: newRecord.name,
-          phone: newRecord.phone,
-          order_details: newRecord.order_details,
-          message: newRecord.message,
-          source: newRecord.source,
-          status: newRecord.status,
-          admin_notes: null,
-          created_at: newRecord.created_at,
-          updated_at: newRecord.updated_at,
-        })
-        .select('*')
-        .single();
+      // Insert without .select('*') so RLS without SELECT permission never blocks inserting
+      const { error } = await supabase.from('complaints').insert({
+        id: newRecord.id,
+        reference_number: newRecord.reference_number,
+        type: newRecord.type,
+        name: newRecord.name,
+        phone: newRecord.phone,
+        order_details: newRecord.order_details,
+        message: newRecord.message,
+        source: newRecord.source,
+        status: newRecord.status,
+        admin_notes: null,
+        created_at: newRecord.created_at,
+        updated_at: newRecord.updated_at,
+      });
 
-      if (!error && inserted) {
-        inMemoryComplaints.unshift(inserted as ComplaintRecord);
-        return inserted as ComplaintRecord;
+      if (!error) {
+        inMemoryComplaints.unshift(newRecord);
+        return newRecord;
       }
-    } catch {
-      // Fall back to inMemory
+
+      console.warn('[Supabase addComplaint warning]:', error.message);
+    } catch (err) {
+      console.warn('[Supabase addComplaint exception]:', err);
     }
   }
 
