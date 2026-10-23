@@ -15,5 +15,11 @@ export const updateMemberStatsSchema = z.object({
   display_boost: z.number().int().min(0, 'Display boost must be non-negative').optional(),
 });
 
+export const updateLinksSchema = z.object({
+  whatsapp_link: z.string().url('Valid URL is required for WhatsApp link'),
+  foodpanda_link: z.string().url('Valid URL is required for Foodpanda link'),
+});
+
 export type UpdateDealInput = z.infer<typeof updateDealSchema>;
 export type UpdateMemberStatsInput = z.infer<typeof updateMemberStatsSchema>;
+export type UpdateLinksInput = z.infer<typeof updateLinksSchema>;

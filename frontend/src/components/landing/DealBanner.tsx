@@ -7,6 +7,7 @@ import { Clock, MessageCircle, Tag } from 'lucide-react';
 import { COPY } from '@/lib/copy';
 import { trackClick } from '@/lib/tracking';
 import { fireBrandConfetti } from '@/components/ui/Confetti';
+import { useSiteLinks } from '@/context/SiteLinksContext';
 
 interface DealBannerProps {
   initialDeal?: Deal | null;
@@ -21,8 +22,9 @@ export const DealBanner: React.FC<DealBannerProps> = ({ initialDeal }) => {
     seconds: number;
   }>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
+  const { whatsapp_link } = useSiteLinks();
   const whatsappUrl =
-    process.env.NEXT_PUBLIC_WHATSAPP_LINK || 'https://chat.whatsapp.com/sample-gfc-invite';
+    whatsapp_link || process.env.NEXT_PUBLIC_WHATSAPP_LINK || 'https://chat.whatsapp.com/sample-gfc-invite';
 
   useEffect(() => {
     if (!deal?.valid_until) return;

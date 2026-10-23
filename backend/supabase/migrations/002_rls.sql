@@ -8,6 +8,7 @@ ALTER TABLE public.deals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.members_stats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cta_clicks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
 
 -- Deny anon access explicitly by default across all tables
 -- Note: Service-role key automatically bypasses RLS in Supabase.
@@ -41,6 +42,11 @@ CREATE POLICY "Deny anon access to admins"
     FOR ALL
     TO anon
     USING (false);
+
+CREATE POLICY "Allow public read access to site_settings"
+    ON public.site_settings
+    FOR SELECT
+    USING (true);
 
 -- Admins table access for authenticated users to check their own role:
 CREATE POLICY "Admins can read own admin status"

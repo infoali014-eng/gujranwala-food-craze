@@ -6,6 +6,11 @@ VALUES (1, 312, 0, timezone('utc'::text, now()))
 ON CONFLICT (id) DO UPDATE 
 SET joined_count = EXCLUDED.joined_count;
 
+-- 1b. Insert Initial Site Settings (Dynamic Business Links)
+INSERT INTO public.site_settings (id, whatsapp_link, foodpanda_link, updated_at)
+VALUES (1, 'https://chat.whatsapp.com/sample-gfc-invite', 'https://www.foodpanda.pk', timezone('utc'::text, now()))
+ON CONFLICT (id) DO NOTHING;
+
 -- 2. Insert Active Weekly Deal
 INSERT INTO public.deals (id, title, description, price_text, valid_until, is_active, created_at)
 VALUES (

@@ -7,6 +7,7 @@ import { Logo } from '@/components/ui/Logo';
 import { AdminReviewList } from '@/components/admin/AdminReviewList';
 import { AdminDealEditor } from '@/components/admin/AdminDealEditor';
 import { AdminStatsEditor } from '@/components/admin/AdminStatsEditor';
+import { AdminLinksEditor } from '@/components/admin/AdminLinksEditor';
 import {
   getAdminReviews,
   deleteReviewApi,
@@ -15,9 +16,12 @@ import {
   updateWeeklyDealApi,
   getMemberStats,
   updateMemberStatsApi,
+  getSiteLinks,
+  updateSiteLinksApi,
   Review,
   Deal,
   MemberStats,
+  SiteLinks,
 } from '@/lib/api';
 import {
   ShieldAlert,
@@ -38,6 +42,7 @@ export default function AdminReviewsPage() {
   const [showDeleted, setShowDeleted] = useState(true);
   const [deal, setDeal] = useState<Deal | null>(null);
   const [stats, setStats] = useState<MemberStats | null>(null);
+  const [links, setLinks] = useState<SiteLinks | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -71,10 +76,11 @@ export default function AdminReviewsPage() {
       setErrorBanner(null);
 
       try {
-        const [reviewsRes, dealRes, statsRes] = await Promise.all([
+        const [reviewsRes, dealRes, statsRes, linksRes] = await Promise.all([
           getAdminReviews(authToken, true),
           getCurrentDeal(),
           getMemberStats(),
+          getSiteLinks(),
         ]);
 
         if (reviewsRes.error) {
@@ -95,6 +101,7 @@ export default function AdminReviewsPage() {
 
         if (dealRes.data) setDeal(dealRes.data);
         if (statsRes.data) setStats(statsRes.data);
+        if (linksRes.data) setLinks(linksRes.data);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Failed to fetch admin data';
         setErrorBanner(msg);
@@ -183,6 +190,20 @@ export default function AdminReviewsPage() {
     const res = await updateMemberStatsApi(statsData, token);
     if (res.data) {
       setStats(res.data);
+      return true;
+    }
+    return false;
+  };
+
+  // Save Links
+  const handleSaveLinks = async (linksData: {
+    whatsapp_link: string;
+    foodpanda_link: string;
+  }): Promise<boolean> => {
+    if (!token) return false;
+    const res = await updateSiteLinksApi(linksData, token);
+    if (res.data) {
+      setLinks(res.data);
       return true;
     }
     return false;
@@ -300,11 +321,14 @@ export default function AdminReviewsPage() {
           </section>
         )}
 
-        {/* Tab 2: Weekly Deal & Member Count Controls */}
+        {/* Tab 2: Weekly Deal, Member Count & Business Links Controls */}
         {activeTab === 'settings' && (
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <AdminDealEditor currentDeal={deal} onSave={handleSaveDeal} />
-            <AdminStatsEditor currentStats={stats} onSave={handleSaveStats} />
+          <section className="space-y-6">
+            <AdminLinksEditor currentLinks={links} onSave={handleSaveLinks} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <AdminDealEditor currentDeal={deal} onSave={handleSaveDeal} />
+              <AdminStatsEditor currentStats={stats} onSave={handleSaveStats} />
+            </div>
           </section>
         )}
       </main>

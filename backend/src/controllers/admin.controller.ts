@@ -3,7 +3,12 @@ import { AuthenticatedRequest } from '../middleware/requireAdmin';
 import { findAllReviews, softDeleteReview, restoreReview } from '../queries/reviews.queries';
 import { updateWeeklyDeal } from '../queries/deals.queries';
 import { updateMembersStats } from '../queries/members.queries';
-import { UpdateDealInput, UpdateMemberStatsInput } from '../validators/admin.schema';
+import { updateSiteSettings } from '../queries/settings.queries';
+import {
+  UpdateDealInput,
+  UpdateMemberStatsInput,
+  UpdateLinksInput,
+} from '../validators/admin.schema';
 
 export async function getAdminReviewsHandler(
   req: AuthenticatedRequest,
@@ -128,6 +133,27 @@ export async function updateMemberStatsHandler(
 
     res.status(200).json({
       data: updatedStats,
+      error: null,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateSiteSettingsHandler(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const input = req.body as UpdateLinksInput;
+    const updatedSettings = await updateSiteSettings(
+      input.whatsapp_link,
+      input.foodpanda_link
+    );
+
+    res.status(200).json({
+      data: updatedSettings,
       error: null,
     });
   } catch (error) {

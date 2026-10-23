@@ -21,7 +21,8 @@ In the left sidebar of your Supabase dashboard:
    - **Step 1**: Copy all of `backend/supabase/migrations/001_init.sql` into the editor and click **Run** (green button).
    - **Step 2**: Copy all of `backend/supabase/migrations/002_rls.sql` into the editor and click **Run**.
    - **Step 3**: Copy all of `backend/supabase/migrations/003_seed.sql` into the editor and click **Run**.
-4. Check **Table Editor** on the left menu: you should now see `reviews` (with 6 seed reviews), `deals` (with 1 active deal), `members_stats` (count: 312), `cta_clicks`, and `admins`.
+   - **Step 4**: (If updating an existing database) Copy all of `backend/supabase/migrations/004_site_settings.sql` and click **Run**.
+4. Check **Table Editor** on the left menu: you should now see `reviews` (with 6 seed reviews), `deals` (with 1 active deal), `members_stats` (count: 312), `site_settings` (dynamic links), `cta_clicks`, and `admins`.
 
 ---
 

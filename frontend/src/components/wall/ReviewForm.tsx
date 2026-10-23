@@ -7,6 +7,7 @@ import { NoteColorPicker, NoteColor } from './NoteColorPicker';
 import { createReview, Review } from '@/lib/api';
 import { getSource, trackClick } from '@/lib/tracking';
 import { fireBrandConfetti } from '@/components/ui/Confetti';
+import { useSiteLinks } from '@/context/SiteLinksContext';
 import { COPY } from '@/lib/copy';
 
 interface ReviewFormProps {
@@ -35,8 +36,9 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
   const [hasPosted, setHasPosted] = useState(false);
 
   const maxChars = 280;
+  const { whatsapp_link } = useSiteLinks();
   const whatsappUrl =
-    process.env.NEXT_PUBLIC_WHATSAPP_LINK || 'https://chat.whatsapp.com/sample-gfc-invite';
+    whatsapp_link || process.env.NEXT_PUBLIC_WHATSAPP_LINK || 'https://chat.whatsapp.com/sample-gfc-invite';
 
   // Check returning visitor state from localStorage
   useEffect(() => {

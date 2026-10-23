@@ -59,3 +59,11 @@ CREATE TABLE IF NOT EXISTS public.admins (
     user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
+
+-- 6. Site Settings Table (Single row for dynamic business links)
+CREATE TABLE IF NOT EXISTS public.site_settings (
+    id INT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+    whatsapp_link TEXT NOT NULL DEFAULT 'https://chat.whatsapp.com/sample-gfc-invite',
+    foodpanda_link TEXT NOT NULL DEFAULT 'https://www.foodpanda.pk',
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);

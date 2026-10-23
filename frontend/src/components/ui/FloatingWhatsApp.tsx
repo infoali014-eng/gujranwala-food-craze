@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { trackClick } from '@/lib/tracking';
+import { useSiteLinks } from '@/context/SiteLinksContext';
 import { fireBrandConfetti } from './Confetti';
 
 interface FloatingWhatsAppProps {
@@ -12,8 +13,9 @@ export const FloatingWhatsApp: React.FC<FloatingWhatsAppProps> = ({ hasPosted = 
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isPostedLocally, setIsPostedLocally] = useState(hasPosted);
 
+  const { whatsapp_link } = useSiteLinks();
   const whatsappUrl =
-    process.env.NEXT_PUBLIC_WHATSAPP_LINK || 'https://chat.whatsapp.com/sample-gfc-invite';
+    whatsapp_link || process.env.NEXT_PUBLIC_WHATSAPP_LINK || 'https://chat.whatsapp.com/sample-gfc-invite';
 
   useEffect(() => {
     // Check if user has already posted from localStorage

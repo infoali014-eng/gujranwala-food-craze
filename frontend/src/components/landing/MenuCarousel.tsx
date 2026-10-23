@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Utensils } from 'lucide-react';
 import { COPY } from '@/lib/copy';
 import { trackClick } from '@/lib/tracking';
+import { useSiteLinks } from '@/context/SiteLinksContext';
 
 interface MenuItem {
   id: string;
@@ -123,8 +124,9 @@ function DishIcon({ type }: { type: MenuItem['iconType'] }) {
 
 export const MenuCarousel: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { foodpanda_link } = useSiteLinks();
   const foodpandaUrl =
-    process.env.NEXT_PUBLIC_FOODPANDA_LINK || 'https://www.foodpanda.pk';
+    foodpanda_link || process.env.NEXT_PUBLIC_FOODPANDA_LINK || 'https://www.foodpanda.pk';
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {

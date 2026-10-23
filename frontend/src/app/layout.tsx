@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Bebas_Neue, Oswald, Lora, Inter } from 'next/font/google';
 import './globals.css';
+import { SiteLinksProvider } from '@/context/SiteLinksContext';
 
 const bebasNeue = Bebas_Neue({
   weight: '400',
@@ -48,7 +49,7 @@ export default function RootLayout({
       className={`${bebasNeue.variable} ${oswald.variable} ${lora.variable} ${inter.variable}`}
     >
       <body className="bg-craze-cream text-craze-dark antialiased min-h-screen flex flex-col selection:bg-craze-amber selection:text-craze-dark">
-        {children}
+        <SiteLinksProvider>{children}</SiteLinksProvider>
       </body>
     </html>
   );

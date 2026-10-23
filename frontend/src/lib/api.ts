@@ -53,6 +53,13 @@ export interface MemberStats {
   total_display_count: number;
 }
 
+export interface SiteLinks {
+  id?: number;
+  whatsapp_link: string;
+  foodpanda_link: string;
+  updated_at?: string;
+}
+
 // Client helper
 async function request<T>(
   endpoint: string,
@@ -115,6 +122,10 @@ export async function getCurrentDeal() {
 
 export async function getMemberStats() {
   return request<MemberStats>('/stats/members');
+}
+
+export async function getSiteLinks() {
+  return request<SiteLinks>('/settings/links');
 }
 
 export async function trackClickApi(data: { source: string; button: string }) {
@@ -183,5 +194,18 @@ export async function updateMemberStatsApi(
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(statsData),
+  });
+}
+
+export async function updateSiteLinksApi(
+  links: { whatsapp_link: string; foodpanda_link: string },
+  token: string
+) {
+  return request<SiteLinks>('/admin/settings/links', {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(links),
   });
 }

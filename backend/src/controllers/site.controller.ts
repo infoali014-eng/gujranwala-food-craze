@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { findCurrentDeal } from '../queries/deals.queries';
 import { getMembersStats } from '../queries/members.queries';
 import { logCtaClick } from '../queries/clicks.queries';
+import { getSiteSettings } from '../queries/settings.queries';
 import { TrackClickInput } from '../validators/track.schema';
 
 export async function getCurrentDealHandler(
@@ -31,6 +32,23 @@ export async function getMembersStatsHandler(
 
     res.status(200).json({
       data: stats,
+      error: null,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getSiteSettingsHandler(
+  _req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const settings = await getSiteSettings();
+
+    res.status(200).json({
+      data: settings,
       error: null,
     });
   } catch (error) {
