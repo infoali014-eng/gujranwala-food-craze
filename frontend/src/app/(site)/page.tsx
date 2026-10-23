@@ -9,7 +9,7 @@ import { WallPreview } from '@/components/landing/WallPreview';
 import { Footer } from '@/components/landing/Footer';
 import { FloatingWhatsApp } from '@/components/ui/FloatingWhatsApp';
 import { LandingTracker } from '@/components/landing/LandingTracker';
-import { Deal, Review, getApiBaseUrl } from '@/lib/api';
+import { Deal, Review, getCurrentDeal, getMemberStats, getReviews } from '@/lib/api';
 
 export const metadata: Metadata = {
   title: 'Gujranwala Food Craze: Join the Craze! VIP WhatsApp Community',
@@ -109,32 +109,28 @@ const fallbackReviews: Review[] = [
 ];
 
 async function getInitialData() {
-  const apiUrl = getApiBaseUrl();
-
   try {
     const [dealRes, statsRes, reviewsRes] = await Promise.allSettled([
-      fetch(`${apiUrl}/deals/current`, { next: { revalidate: 60 } }),
-      fetch(`${apiUrl}/stats/members`, { next: { revalidate: 60 } }),
-      fetch(`${apiUrl}/reviews?limit=6`, { next: { revalidate: 60 } }),
+      getCurrentDeal(),
+      getMemberStats(),
+      getReviews(6),
     ]);
 
     let deal: Deal | null = fallbackDeal;
     let memberCount = 312;
     let reviews: Review[] = fallbackReviews;
 
-    if (dealRes.status === 'fulfilled' && dealRes.value.ok) {
-      const json = await dealRes.value.json();
-      if (json.data) deal = json.data;
+    if (dealRes.status === 'fulfilled' && dealRes.value.data) {
+      deal = dealRes.value.data;
     }
 
-    if (statsRes.status === 'fulfilled' && statsRes.value.ok) {
-      const json = await statsRes.value.json();
-      if (json.data) memberCount = json.data.total_display_count || json.data.joined_count;
+    if (statsRes.status === 'fulfilled' && statsRes.value.data) {
+      memberCount =
+        statsRes.value.data.total_display_count || statsRes.value.data.joined_count;
     }
 
-    if (reviewsRes.status === 'fulfilled' && reviewsRes.value.ok) {
-      const json = await reviewsRes.value.json();
-      if (json.data?.reviews) reviews = json.data.reviews;
+    if (reviewsRes.status === 'fulfilled' && reviewsRes.value.data?.reviews) {
+      reviews = reviewsRes.value.data.reviews;
     }
 
     return { deal, memberCount, reviews };

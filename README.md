@@ -147,31 +147,51 @@ Once added, log in at [http://localhost:3000/admin/login](http://localhost:3000/
 
 ---
 
-## Step-by-Step Vercel Deployment Guide
+## Vercel setup checklist
 
-Deploy this repository as a single Vercel project with multiple services using root `vercel.json`:
+Deploy the frontend and backend as two decoupled projects from this monorepo:
 
-### Unified Vercel Services Deployment
-1. In the [Vercel Dashboard](https://vercel.com), click **Add New** > **Project** and import `gujranwala-food-craze`.
-2. Keep the root directory as the repository root (do not change to a subdirectory; Vercel automatically detects root `vercel.json`).
-3. Add the following **Environment Variables**:
-   - `PORT`: `5000`
-   - `NODE_ENV`: `production`
-   - `SUPABASE_URL`: `https://your-project.supabase.co`
-   - `SUPABASE_SERVICE_ROLE_KEY`: `your-supabase-service-role-secret-key` (Server-side only)
-   - `NEXT_PUBLIC_WHATSAPP_LINK`: `https://chat.whatsapp.com/your-real-whatsapp-group-invite`
-   - `NEXT_PUBLIC_FOODPANDA_LINK`: `https://www.foodpanda.pk/restaurant/your-id`
-   - `NEXT_PUBLIC_SUPABASE_URL`: `https://your-project.supabase.co`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: `your-supabase-anon-public-key`
-   *(Note: `BACKEND_URL` is automatically injected into the frontend by the Vercel service binding).*
-4. Click **Deploy**.
-5. Vercel builds both `backend` (Express) and `frontend` (Next.js) independently and routes:
-   - `/api/(.*)` to the `backend` service.
-   - `/(.*)` to the `frontend` service.
+### 1. Backend Project Deployment
+- **Import repository**: In the Vercel dashboard, click **Add New** > **Project** and select this repository.
+- **Root Directory**: Click Edit and set to `backend`.
+- **Framework Preset**: Other (handled automatically by `backend/vercel.json` and `@vercel/node`).
+- **Required Environment Variables**:
+  - `SUPABASE_URL`: Your Supabase project URL (e.g. `https://xxxxxx.supabase.co`).
+  - `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role secret key.
+  - `FRONTEND_ORIGIN`: Comma-separated list of allowed frontend production domains (e.g. `https://your-frontend.vercel.app,https://gujranwalafoodcraze.com`).
+  - `ALLOW_VERCEL_PREVIEWS`: Set to `true` to allow Vercel preview deployment URLs.
+  - `NODE_ENV`: Set to `production`.
+- **Verify Backend Deployment**:
+  Open `https://<your-backend-project>.vercel.app/api/health` in your browser.
+  Expected response:
+  ```json
+  {
+    "data": {
+      "ok": true,
+      "envConfigured": true,
+      "status": "ok",
+      "service": "gujranwala-food-craze-api",
+      "timestamp": "..."
+    },
+    "error": null
+  }
+  ```
 
-### Custom Domain Configuration (Optional)
-- Add your custom domain (e.g. `gujranwalafoodcraze.com`) in Vercel Project Settings > Domains.
-- All frontend routes and `/api` backend endpoints share this single domain with zero CORS complications.
+### 2. Frontend Project Deployment
+- **Import repository**: Click **Add New** > **Project** and select the same repository.
+- **Root Directory**: Click Edit and set to `frontend`.
+- **Framework Preset**: Next.js (detected automatically).
+- **Required Environment Variables**:
+  - `NEXT_PUBLIC_API_URL`: Your backend HTTPS URL without trailing slash (e.g. `https://<your-backend-project>.vercel.app/api`).
+  - `NEXT_PUBLIC_WHATSAPP_LINK`: Your WhatsApp group invite link.
+  - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL (for admin authentication).
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anon public key (for admin authentication).
+- **Important Reminder**: Changing any `NEXT_PUBLIC_` environment variable requires a manual redeployment on Vercel because these values are baked into the static build at compile time.
+
+### 3. Custom Domain Configuration (Optional)
+- Add your custom domain in Vercel Project Settings > Domains for the frontend project (e.g. `gujranwalafoodcraze.com`).
+- Add the API subdomain for the backend project (e.g. `api.gujranwalafoodcraze.com`).
+- Update `FRONTEND_ORIGIN` on the backend to include `https://gujranwalafoodcraze.com`.
 
 ---
 

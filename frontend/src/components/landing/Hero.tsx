@@ -115,7 +115,7 @@ export const Hero: React.FC<HeroProps> = ({ memberCount = 312 }) => {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="mb-4 sm:mb-6"
         >
-          <Logo size="lg" showSteam={true} interactive={true} />
+          <Logo size="lg" showSteam={true} interactive={true} priority={true} />
         </motion.div>
 
         {/* Brand Name Title */}

@@ -10,6 +10,7 @@ export interface LogoProps {
   showSteam?: boolean;
   className?: string;
   interactive?: boolean;
+  priority?: boolean;
 }
 
 export const Logo: React.FC<LogoProps> = ({
@@ -17,6 +18,7 @@ export const Logo: React.FC<LogoProps> = ({
   showSteam = true,
   className = '',
   interactive = true,
+  priority = false,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const shouldReduceMotion = useReducedMotion();
@@ -92,11 +94,11 @@ export const Logo: React.FC<LogoProps> = ({
       >
         <Image
           src="/logo.png"
-          alt="Gujranwala Food Craze Logo Emblem"
+          alt="Gujranwala Food Craze logo"
           width={dimension}
           height={dimension}
           className="object-cover w-full h-full"
-          priority
+          priority={priority || size === 'xl' || size === 'lg'}
         />
       </motion.div>
     </div>

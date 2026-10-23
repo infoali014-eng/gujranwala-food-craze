@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { CrazeWallClient } from '@/components/wall/CrazeWallClient';
-import { Review, getApiBaseUrl } from '@/lib/api';
+import { Review, getReviews } from '@/lib/api';
 
 export const metadata: Metadata = {
   title: 'Craze Wall: Aapki Baat, Aapka Note | Gujranwala Food Craze',
@@ -73,21 +73,14 @@ const fallbackReviews: Review[] = [
 ];
 
 async function getInitialReviews() {
-  const apiUrl = getApiBaseUrl();
-
   try {
-    const res = await fetch(`${apiUrl}/reviews?limit=12`, {
-      next: { revalidate: 30 },
-    });
+    const res = await getReviews(12);
 
-    if (res.ok) {
-      const json = await res.json();
-      if (json.data?.reviews) {
-        return {
-          reviews: json.data.reviews as Review[],
-          nextCursor: (json.data.nextCursor as string | null) || null,
-        };
-      }
+    if (res.data?.reviews) {
+      return {
+        reviews: res.data.reviews,
+        nextCursor: res.data.nextCursor || null,
+      };
     }
   } catch (err) {
     console.warn('Backend not reached during static generation, using fallback:', err);

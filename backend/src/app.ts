@@ -1,4 +1,4 @@
-import express, { Application } from 'express';
+import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { ENV } from './config/env';
@@ -6,45 +6,82 @@ import healthRoutes from './routes/health.routes';
 import reviewsRoutes from './routes/reviews.routes';
 import siteRoutes from './routes/site.routes';
 import adminRoutes from './routes/admin.routes';
-import { errorHandler } from './middleware/errorHandler';
+import { checkDatabaseConfig } from './middleware/checkDatabaseConfig';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 const app: Application = express();
 
-// Security and utility middleware
+// Security headers
 app.use(helmet());
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. mobile apps, curl, serverless internal)
-      if (!origin) return callback(null, true);
-      // In development allow any localhost
-      if (
-        ENV.NODE_ENV === 'development' &&
-        (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1'))
-      ) {
-        return callback(null, true);
-      }
-      if (
-        origin === ENV.FRONTEND_URL ||
-        origin.endsWith('.vercel.app') ||
-        (ENV.FRONTEND_URL && origin.includes(ENV.FRONTEND_URL))
-      ) {
-        return callback(null, true);
-      }
-      return callback(new Error(`CORS policy does not allow access from ${origin}`));
-    },
-    credentials: true,
-  })
-);
+
+// Production CORS configuration
+const allowedOrigins = (ENV.FRONTEND_ORIGIN || 'http://localhost:3000')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, server-to-server)
+    if (!origin) return callback(null, true);
+
+    // Exact matching against configured frontend origins
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Allow localhost in non-production environments
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1'))
+    ) {
+      return callback(null, true);
+    }
+
+    // Allow Vercel preview deployments if enabled via ALLOW_VERCEL_PREVIEWS
+    if (ENV.ALLOW_VERCEL_PREVIEWS && origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS policy does not allow access from origin: ${origin}`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+};
+
+app.use(cors(corsOptions));
+// Handle preflight requests across all endpoints
+app.options('*', cors(corsOptions));
+
 app.use(express.json());
 
-// Public API Routes
+// Public health check routes (never require database config so they always succeed)
 app.use('/api/health', healthRoutes);
-app.use('/api/reviews', reviewsRoutes);
-app.use('/api', siteRoutes);
+app.use('/health', healthRoutes);
 
-// Protected Admin Routes
-app.use('/api/admin', adminRoutes);
+// Root route for sanity check
+app.get('/', (_req: Request, res: Response) => {
+  res.status(200).json({
+    data: {
+      service: 'gujranwala-food-craze-api',
+      status: 'active',
+    },
+    error: null,
+  });
+});
+
+// Database-backed routes with lazy configuration guard
+app.use('/api/reviews', checkDatabaseConfig, reviewsRoutes);
+app.use('/reviews', checkDatabaseConfig, reviewsRoutes);
+
+app.use('/api/admin', checkDatabaseConfig, adminRoutes);
+app.use('/admin', checkDatabaseConfig, adminRoutes);
+
+app.use('/api', checkDatabaseConfig, siteRoutes);
+
+// 404 handler for unmapped routes
+app.use(notFoundHandler);
 
 // Central error handler
 app.use(errorHandler);

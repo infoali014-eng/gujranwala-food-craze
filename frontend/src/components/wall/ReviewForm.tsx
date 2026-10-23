@@ -98,7 +98,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
       });
 
       if (res.error) {
-        setGeneralError(res.error.message || 'Review submit nahi ho saka. Dobara koshish karein.');
+        setGeneralError(res.error.message || 'Review submit nahi ho saka.');
         setIsLoading(false);
         return;
       }
@@ -132,7 +132,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
         }, 150);
       }
     } catch {
-      setGeneralError('Network error. Please internet check karein aur dobara koshish karein.');
+      setGeneralError('Internet connection check karein ya thori der baad koshish karein.');
     } finally {
       setIsLoading(false);
     }
@@ -223,18 +223,20 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
       </div>
 
       {generalError && (
-        <div className="mb-5 p-3.5 rounded-2xl bg-red-50 border-2 border-craze-red text-craze-red flex items-start gap-2.5">
-          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <div className="flex-1 text-xs sm:text-sm font-sans font-semibold">
-            <span>{generalError}</span>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="block mt-1 underline font-bold"
-            >
-              Dobara koshish karein
-            </button>
+        <div className="mb-5 p-4 rounded-2xl bg-red-50 border-2 border-craze-red text-craze-red flex flex-col gap-3">
+          <div className="flex items-start gap-2.5">
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+            <span className="text-xs sm:text-sm font-sans font-semibold flex-1">
+              {generalError}
+            </span>
           </div>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="self-start px-4 py-2.5 rounded-xl bg-craze-red text-white text-xs font-sans font-bold shadow-xs hover:bg-[#8F0A13] active:translate-y-0.5 transition-all min-h-[48px] flex items-center justify-center"
+          >
+            Dobara koshish karein
+          </button>
         </div>
       )}
 
