@@ -8,7 +8,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   SUPABASE_URL: z.string().min(1, 'SUPABASE_URL is missing'),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is missing'),
-  FRONTEND_ORIGIN: z.string().default('http://localhost:3000'),
+  FRONTEND_ORIGIN: z.string().optional().default(''),
   ALLOW_VERCEL_PREVIEWS: z.coerce.boolean().default(true),
 });
 
@@ -54,9 +54,9 @@ export const ENV = {
     return process.env.SUPABASE_SERVICE_ROLE_KEY || '';
   },
   get FRONTEND_ORIGIN(): string {
-    return process.env.FRONTEND_ORIGIN || process.env.FRONTEND_URL || 'http://localhost:3000';
+    return process.env.FRONTEND_ORIGIN || process.env.FRONTEND_URL || '';
   },
   get ALLOW_VERCEL_PREVIEWS(): boolean {
-    return process.env.ALLOW_VERCEL_PREVIEWS === 'true' || process.env.NODE_ENV !== 'production';
+    return process.env.ALLOW_VERCEL_PREVIEWS !== 'false';
   },
 };

@@ -18,20 +18,25 @@ export async function logCtaClick(data: {
   const source = data.source || 'direct';
 
   if (supabase) {
-    const { data: inserted, error } = await supabase
-      .from('cta_clicks')
-      .insert({
-        source,
-        button: data.button,
-      })
-      .select('*')
-      .single();
+    try {
+      const { data: inserted, error } = await supabase
+        .from('cta_clicks')
+        .insert({
+          source,
+          button: data.button,
+        })
+        .select('*')
+        .single();
 
-    if (error) {
-      throw new Error(`Database error logging CTA click: ${error.message}`);
+      if (!error && inserted) {
+        return inserted as CtaClickRecord;
+      }
+      if (error) {
+        console.error(`[Database error logging CTA click]: ${error.message}`);
+      }
+    } catch (err) {
+      console.error('[Exception logging CTA click]:', err);
     }
-
-    return inserted as CtaClickRecord;
   }
 
   const record: CtaClickRecord = {

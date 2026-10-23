@@ -41,13 +41,14 @@ export interface SiteLinks {
 export function getApiBaseUrl(): string | null {
   const envUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
   if (envUrl) {
-    return envUrl.replace(/\/+$/, '');
+    const clean = envUrl.replace(/\/+$/, '');
+    return clean.endsWith('/api') ? clean : `${clean}/api`;
   }
 
   // Server-side runtime inside Next.js when deployed as Vercel Services
   if (typeof window === 'undefined' && process.env.BACKEND_URL) {
     const backendUrl = process.env.BACKEND_URL.replace(/\/+$/, '');
-    return `${backendUrl}/api`;
+    return backendUrl.endsWith('/api') ? backendUrl : `${backendUrl}/api`;
   }
 
   // In browser on Vercel, default to same-origin /api routed by Vercel services

@@ -11,39 +11,67 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 const app: Application = express();
 
+// Trust Vercel / reverse proxy for correct client IP detection and headers
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(helmet());
 
 // Production CORS configuration
-const allowedOrigins = (ENV.FRONTEND_ORIGIN || 'http://localhost:3000')
-  .split(',')
-  .map((o) => o.trim())
-  .filter(Boolean);
+const rawOrigins = (ENV.FRONTEND_ORIGIN || '').trim();
+const allowedOrigins = rawOrigins
+  ? rawOrigins.split(',').map((o) => o.trim().toLowerCase()).filter(Boolean)
+  : [];
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, server-to-server)
+    // Allow requests with no origin (mobile apps, curl, SSR, server-to-server)
     if (!origin) return callback(null, true);
 
-    // Exact matching against configured frontend origins
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
+    try {
+      const parsed = new URL(origin);
+      const hostname = parsed.hostname.toLowerCase();
 
-    // Allow localhost in non-production environments
-    if (
-      process.env.NODE_ENV !== 'production' &&
-      (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1'))
-    ) {
-      return callback(null, true);
-    }
+      // 1. Always allow localhost and loopback
+      if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return callback(null, true);
+      }
 
-    // Allow Vercel preview deployments if enabled via ALLOW_VERCEL_PREVIEWS
-    if (ENV.ALLOW_VERCEL_PREVIEWS && origin.endsWith('.vercel.app')) {
-      return callback(null, true);
-    }
+      // 2. Always allow any Vercel deployment (*.vercel.app)
+      if (hostname.endsWith('.vercel.app')) {
+        return callback(null, true);
+      }
 
-    return callback(new Error(`CORS policy does not allow access from origin: ${origin}`));
+      // 3. Allow Vercel automatic deployment URLs
+      if (process.env.VERCEL_URL && hostname === process.env.VERCEL_URL.toLowerCase()) {
+        return callback(null, true);
+      }
+      if (
+        process.env.VERCEL_PROJECT_PRODUCTION_URL &&
+        hostname === process.env.VERCEL_PROJECT_PRODUCTION_URL.toLowerCase()
+      ) {
+        return callback(null, true);
+      }
+
+      // 4. Check configured frontend origins
+      const originLower = origin.toLowerCase();
+      if (
+        allowedOrigins.includes('*') ||
+        allowedOrigins.some((allowed) => allowed === originLower || allowed === `https://${hostname}`)
+      ) {
+        return callback(null, true);
+      }
+
+      // 5. Default allow if no specific FRONTEND_ORIGIN was provided
+      if (allowedOrigins.length === 0) {
+        return callback(null, true);
+      }
+
+      // Safe reject without throwing an unhandled Error
+      return callback(null, false);
+    } catch {
+      return callback(null, false);
+    }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -71,7 +99,7 @@ app.get('/', (_req: Request, res: Response) => {
   });
 });
 
-// Database-backed routes with lazy configuration guard
+// Database-backed routes mounted on both prefixed and non-prefixed paths for flexible routing
 app.use('/api/reviews', checkDatabaseConfig, reviewsRoutes);
 app.use('/reviews', checkDatabaseConfig, reviewsRoutes);
 
@@ -79,6 +107,7 @@ app.use('/api/admin', checkDatabaseConfig, adminRoutes);
 app.use('/admin', checkDatabaseConfig, adminRoutes);
 
 app.use('/api', checkDatabaseConfig, siteRoutes);
+app.use('/', checkDatabaseConfig, siteRoutes);
 
 // 404 handler for unmapped routes
 app.use(notFoundHandler);

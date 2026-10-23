@@ -20,21 +20,24 @@ export async function getMembersStats(): Promise<MemberStatsRecord> {
   const supabase = getSupabase();
 
   if (supabase) {
-    const { data, error } = await supabase
-      .from('members_stats')
-      .select('*')
-      .eq('id', 1)
-      .maybeSingle();
+    try {
+      const { data, error } = await supabase
+        .from('members_stats')
+        .select('*')
+        .eq('id', 1)
+        .maybeSingle();
 
-    if (error) {
-      throw new Error(`Database error fetching member stats: ${error.message}`);
-    }
-
-    if (data) {
-      return {
-        ...data,
-        total_display_count: (data.joined_count || 0) + (data.display_boost || 0),
-      };
+      if (!error && data) {
+        return {
+          ...data,
+          total_display_count: (data.joined_count || 0) + (data.display_boost || 0),
+        };
+      }
+      if (error) {
+        console.error(`[Database error fetching member stats]: ${error.message}`);
+      }
+    } catch (err) {
+      console.error('[Exception fetching member stats]:', err);
     }
   }
 

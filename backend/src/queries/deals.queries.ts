@@ -26,20 +26,25 @@ export async function findCurrentDeal(): Promise<DealRecord | null> {
   const supabase = getSupabase();
 
   if (supabase) {
-    const { data, error } = await supabase
-      .from('deals')
-      .select('*')
-      .eq('is_active', true)
-      .gt('valid_until', new Date().toISOString())
-      .order('valid_until', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    try {
+      const { data, error } = await supabase
+        .from('deals')
+        .select('*')
+        .eq('is_active', true)
+        .gt('valid_until', new Date().toISOString())
+        .order('valid_until', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-    if (error) {
-      throw new Error(`Database error fetching current deal: ${error.message}`);
+      if (!error && data) {
+        return (data as DealRecord) || null;
+      }
+      if (error) {
+        console.error(`[Database error fetching current deal]: ${error.message}`);
+      }
+    } catch (err) {
+      console.error('[Exception fetching current deal]:', err);
     }
-
-    return (data as DealRecord) || null;
   }
 
   // Check fallback

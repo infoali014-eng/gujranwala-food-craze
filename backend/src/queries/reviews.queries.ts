@@ -95,17 +95,21 @@ export async function findLiveReviews(options: {
       query = query.lt('created_at', cursor);
     }
 
-    const { data, error } = await query;
-    if (error) {
-      throw new Error(`Database error fetching reviews: ${error.message}`);
+    try {
+      const { data, error } = await query;
+      if (!error && data) {
+        const items = data as ReviewRecord[];
+        const hasMore = items.length > limit;
+        const reviews = hasMore ? items.slice(0, limit) : items;
+        const nextCursor = hasMore ? reviews[reviews.length - 1].created_at : null;
+        return { reviews, nextCursor };
+      }
+      if (error) {
+        console.error(`[Database error fetching reviews]: ${error.message}`);
+      }
+    } catch (err) {
+      console.error('[Exception fetching reviews]:', err);
     }
-
-    const items = (data || []) as ReviewRecord[];
-    const hasMore = items.length > limit;
-    const reviews = hasMore ? items.slice(0, limit) : items;
-    const nextCursor = hasMore ? reviews[reviews.length - 1].created_at : null;
-
-    return { reviews, nextCursor };
   }
 
   // Fallback to in-memory store

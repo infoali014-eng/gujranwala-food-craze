@@ -99,6 +99,7 @@ export const Logo: React.FC<LogoProps> = ({
           height={dimension}
           className="object-cover w-full h-full"
           priority={priority || size === 'xl' || size === 'lg'}
+          unoptimized={true}
         />
       </motion.div>
     </div>
