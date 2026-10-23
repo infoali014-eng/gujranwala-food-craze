@@ -72,28 +72,6 @@ const fallbackReviews: Review[] = [
   },
 ];
 
-async function getInitialReviews() {
-  try {
-    const res = await getReviews(12);
-
-    if (res.data?.reviews) {
-      return {
-        reviews: res.data.reviews,
-        nextCursor: res.data.nextCursor || null,
-      };
-    }
-  } catch (err) {
-    console.warn('Backend not reached during static generation, using fallback:', err);
-  }
-
-  return {
-    reviews: fallbackReviews,
-    nextCursor: null,
-  };
-}
-
-export default async function CrazeWallPage() {
-  const { reviews, nextCursor } = await getInitialReviews();
-
-  return <CrazeWallClient initialReviews={reviews} initialCursor={nextCursor} />;
+export default function CrazeWallPage() {
+  return <CrazeWallClient initialReviews={fallbackReviews} initialCursor={null} />;
 }

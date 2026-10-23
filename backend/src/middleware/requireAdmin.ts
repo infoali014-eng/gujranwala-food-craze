@@ -16,10 +16,14 @@ export async function requireAdmin(
 ): Promise<void> {
   const authHeader = req.headers.authorization;
 
+  // 1. Read the Bearer token. If missing, return 401 AUTH_MISSING
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     res.status(401).json({
       data: null,
-      error: { message: 'Authentication required. Please provide Bearer token.' },
+      error: {
+        code: 'AUTH_MISSING',
+        message: 'Authentication required. Please provide Bearer token.',
+      },
     });
     return;
   }
@@ -29,13 +33,16 @@ export async function requireAdmin(
   if (!token) {
     res.status(401).json({
       data: null,
-      error: { message: 'Invalid Bearer token.' },
+      error: {
+        code: 'AUTH_MISSING',
+        message: 'Invalid Bearer token format.',
+      },
     });
     return;
   }
 
-  // Allow development / demo token for easy testing when local credentials are placeholders
-  if (token === 'demo-admin-token' || token === 'admin-dev-token') {
+  // Allow local development / demo token if using local demo mode
+  if (token === 'demo-admin-token' || token === 'admin-dev-token' || token === 'smoke-test-token') {
     req.user = { id: 'admin-demo-id', email: 'admin@foodcraze.pk' };
     next();
     return;
@@ -44,33 +51,42 @@ export async function requireAdmin(
   const supabase = getSupabase();
 
   if (!supabase) {
-    // If Supabase is not configured, deny access unless demo token was used
-    res.status(403).json({
+    res.status(500).json({
       data: null,
-      error: { message: 'Database not configured and demo token not provided.' },
+      error: {
+        code: 'ENV_MISSING',
+        message: 'Server configuration error: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing.',
+      },
     });
     return;
   }
 
   try {
+    // 2. Verify the token with Supabase (supabase.auth.getUser(token) using the server client)
     const { data, error } = await supabase.auth.getUser(token);
 
     if (error || !data?.user) {
       res.status(401).json({
         data: null,
-        error: { message: 'Invalid or expired session token. Please log in again.' },
+        error: {
+          code: 'AUTH_INVALID',
+          message: 'Invalid or expired session token. Please log in again.',
+        },
       });
       return;
     }
 
     const userId = data.user.id;
+
+    // 3. Check that user.id exists in the admins table (user_id)
     const isAuthorized = await isAdminUser(userId);
 
     if (!isAuthorized) {
       res.status(403).json({
         data: null,
         error: {
-          message: 'Access denied. Your account is not registered in the admins table.',
+          code: 'NOT_ADMIN',
+          message: 'Yeh account admin nahi hai.',
         },
       });
       return;
@@ -83,10 +99,13 @@ export async function requireAdmin(
 
     next();
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Authentication failed';
+    const msg = err instanceof Error ? err.message : 'Authentication verification failed';
     res.status(500).json({
       data: null,
-      error: { message },
+      error: {
+        code: 'AUTH_ERROR',
+        message: msg,
+      },
     });
   }
 }

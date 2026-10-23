@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Deal } from '@/lib/api';
+import { Deal, getCurrentDeal } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Clock, MessageCircle, Tag } from 'lucide-react';
 import { COPY } from '@/lib/copy';
@@ -15,6 +15,20 @@ interface DealBannerProps {
 
 export const DealBanner: React.FC<DealBannerProps> = ({ initialDeal }) => {
   const [deal, setDeal] = useState<Deal | null>(initialDeal || null);
+
+  useEffect(() => {
+    let mounted = true;
+    getCurrentDeal()
+      .then((res) => {
+        if (mounted && res.data) {
+          setDeal(res.data);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
   const [timeLeft, setTimeLeft] = useState<{
     days: number;
     hours: number;

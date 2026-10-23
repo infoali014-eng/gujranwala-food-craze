@@ -1,5 +1,41 @@
 # Gujranwala Food Craze: "Join the Craze"
 
+## Deployment topology
+- **Active Topology**: **Topology A (Single Vercel Project with Vercel Services)**
+  The repository is configured as a single Vercel project with Vercel Services enabled in the root `vercel.json`. Vercel builds both the backend (`framework: express`, root `backend`) and the frontend (`framework: nextjs`, root `frontend`) in a single deployment. Public routing automatically directs `/api/(.*)` to the backend service and `/(.*)` to the frontend service on the same domain.
+- **Alternative (Topology B - Two Independent Vercel Projects)**:
+  If you choose to run separate projects instead of Services:
+  1. Project 1 (Frontend): Set Vercel Root Directory to `frontend`. Framework: Next.js. Set `NEXT_PUBLIC_API_URL` to your backend project URL (e.g. `https://your-backend.vercel.app/api`).
+  2. Project 2 (Backend): Set Vercel Root Directory to `backend`. Framework: Other/Node.js. Set `FRONTEND_ORIGIN` to your frontend URL.
+
+## Vercel Environment Variables
+
+| Variable Name | Required By | Environments | Description |
+| :--- | :--- | :--- | :--- |
+| `SUPABASE_URL` | Backend | Production, Preview, Development | Full https URL of your Supabase project (e.g. `https://xxx.supabase.co`) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Backend | Production, Preview, Development | Secret service role key (bypasses RLS for backend operations) |
+| `FRONTEND_ORIGIN` | Backend | Production, Preview, Development | Allowed origin(s), e.g. `https://gujranwala-food-craze.vercel.app` |
+| `NEXT_PUBLIC_SUPABASE_URL` | Frontend | Production, Preview, Development | Public Supabase URL for client auth (Config type in Vercel) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Frontend | Production, Preview, Development | Public anon key for client auth (Config type in Vercel) |
+| `NEXT_PUBLIC_API_URL` | Frontend | Production, Preview, Development | Backend API URL (Optional in Topology A since same-origin `/api` is used; Required in Topology B) |
+| `NEXT_PUBLIC_WHATSAPP_LINK` | Frontend | Production, Preview, Development | WhatsApp invite link |
+| `NEXT_PUBLIC_FOODPANDA_LINK` | Frontend | Production, Preview, Development | Foodpanda restaurant link |
+| `REVIEW_RATE_LIMIT_PER_HOUR` | Backend | Production, Preview, Development | Optional rate limit for reviews per hour (Default: 3) |
+
+> **Important**: Every variable prefixed with `NEXT_PUBLIC_` is inlined during `next build`. If you add or modify any `NEXT_PUBLIC_` variable in Vercel, you must trigger a **Redeploy without build cache** for the changes to take effect in the browser.
+
+## Registering Admin User
+To grant moderator access to an existing Supabase Auth user:
+```sql
+-- 1. Find user id
+SELECT id, email FROM auth.users;
+
+-- 2. Insert into admins table
+INSERT INTO public.admins (user_id) 
+VALUES ('<USER_ID_FROM_ABOVE>') 
+ON CONFLICT (user_id) DO NOTHING;
+```
+
 > **Tagline:** The taste of Punjab  
 > **Brand Colors:** Craze Red (`#C30D1A`), Craze Amber (`#FDBC5A`), Craze Cream (`#FDEFDA`), Crimson Dark (`#8F0A13`), Text Dark (`#2B0A0C`)  
 > **Mission:** Fast, mobile-first scan-me landing site driving customers from delivery flyers and boxes to our VIP WhatsApp community, showcasing weekly deals, and collecting customer sticky-note reviews on the Craze Wall.

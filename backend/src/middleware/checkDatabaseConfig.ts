@@ -6,7 +6,10 @@ export const checkDatabaseConfig = (_req: Request, res: Response, next: NextFunc
   if (!envValidation.valid) {
     res.status(500).json({
       data: null,
-      error: envValidation.error,
+      error: {
+        code: envValidation.code,
+        message: envValidation.error,
+      },
     });
     return;
   }

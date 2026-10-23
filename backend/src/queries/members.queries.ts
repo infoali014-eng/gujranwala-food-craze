@@ -53,29 +53,34 @@ export async function updateMembersStats(
 ): Promise<MemberStatsRecord> {
   const supabase = getSupabase();
 
-  if (supabase) {
-    const payload: { joined_count: number; display_boost?: number; updated_at: string } = {
-      joined_count: joinedCount,
-      updated_at: new Date().toISOString(),
-    };
-    if (typeof displayBoost === 'number') {
-      payload.display_boost = displayBoost;
+  if (supabase && !process.env.SUPABASE_URL?.includes('dummy')) {
+    try {
+      const payload: { joined_count: number; display_boost?: number; updated_at: string } = {
+        joined_count: joinedCount,
+        updated_at: new Date().toISOString(),
+      };
+      if (typeof displayBoost === 'number') {
+        payload.display_boost = displayBoost;
+      }
+
+      const { data, error } = await supabase
+        .from('members_stats')
+        .upsert({ id: 1, ...payload })
+        .select('*')
+        .single();
+
+      if (!error && data) {
+        return {
+          ...data,
+          total_display_count: data.joined_count + (data.display_boost || 0),
+        };
+      }
+      if (error) {
+        console.error(`[Supabase updateMembersStats Error]: ${error.message}`);
+      }
+    } catch (err) {
+      console.error('[Supabase updateMembersStats Exception]:', err);
     }
-
-    const { data, error } = await supabase
-      .from('members_stats')
-      .upsert({ id: 1, ...payload })
-      .select('*')
-      .single();
-
-    if (error) {
-      throw new Error(`Database error updating member stats: ${error.message}`);
-    }
-
-    return {
-      ...data,
-      total_display_count: data.joined_count + (data.display_boost || 0),
-    };
   }
 
   inMemoryStats.joined_count = joinedCount;

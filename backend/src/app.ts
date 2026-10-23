@@ -1,4 +1,4 @@
-import express, { Application, Request, Response } from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { ENV } from './config/env';
@@ -11,71 +11,102 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 const app: Application = express();
 
-// Trust Vercel / reverse proxy for correct client IP detection and headers
+// Trust Vercel / reverse proxy for correct client IP detection (MUST be before any middleware)
 app.set('trust proxy', 1);
+
+// Generate short requestId for structured logging and response tracking
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  (req as any).requestId = `req_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 7)}`;
+  next();
+});
 
 // Security headers
 app.use(helmet());
 
 // Production CORS configuration
-const rawOrigins = (ENV.FRONTEND_ORIGIN || '').trim();
-const allowedOrigins = rawOrigins
-  ? rawOrigins.split(',').map((o) => o.trim().toLowerCase()).filter(Boolean)
-  : [];
+function isOriginAllowed(origin?: string): boolean {
+  if (!origin) return true; // Server-to-server, mobile app, curl, SSR
+
+  try {
+    const parsed = new URL(origin);
+    const hostname = parsed.hostname.toLowerCase();
+
+    // Local development
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return true;
+    }
+
+    // Allow all Vercel deployment domains (*.vercel.app)
+    if (hostname.endsWith('.vercel.app')) {
+      return true;
+    }
+
+    // Configured frontend origin(s)
+    const rawOrigins = (ENV.FRONTEND_ORIGIN || '').trim();
+    if (rawOrigins) {
+      const allowed = rawOrigins
+        .split(',')
+        .map((o) => o.trim().toLowerCase())
+        .filter(Boolean);
+
+      const originLower = origin.toLowerCase();
+      if (allowed.includes('*') || allowed.some((a) => a === originLower || a === `https://${hostname}`)) {
+        return true;
+      }
+    }
+
+    // Vercel auto-injected system URLs
+    if (process.env.VERCEL_URL && hostname === process.env.VERCEL_URL.toLowerCase()) {
+      return true;
+    }
+    if (
+      process.env.VERCEL_PROJECT_PRODUCTION_URL &&
+      hostname === process.env.VERCEL_PROJECT_PRODUCTION_URL.toLowerCase()
+    ) {
+      return true;
+    }
+
+    // Default allow if no specific FRONTEND_ORIGIN was provided
+    if (!ENV.FRONTEND_ORIGIN) {
+      return true;
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+// Custom CORS check ensuring CORS_BLOCKED JSON response on rejection
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const origin = req.headers.origin;
+
+  if (origin && !isOriginAllowed(origin)) {
+    res.status(403).json({
+      data: null,
+      error: {
+        code: 'CORS_BLOCKED',
+        message: `CORS policy does not allow access from origin: ${origin}`,
+      },
+      requestId: (req as any).requestId,
+    });
+    return;
+  }
+
+  next();
+});
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, SSR, server-to-server)
-    if (!origin) return callback(null, true);
-
-    try {
-      const parsed = new URL(origin);
-      const hostname = parsed.hostname.toLowerCase();
-
-      // 1. Always allow localhost and loopback
-      if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return callback(null, true);
-      }
-
-      // 2. Always allow any Vercel deployment (*.vercel.app)
-      if (hostname.endsWith('.vercel.app')) {
-        return callback(null, true);
-      }
-
-      // 3. Allow Vercel automatic deployment URLs
-      if (process.env.VERCEL_URL && hostname === process.env.VERCEL_URL.toLowerCase()) {
-        return callback(null, true);
-      }
-      if (
-        process.env.VERCEL_PROJECT_PRODUCTION_URL &&
-        hostname === process.env.VERCEL_PROJECT_PRODUCTION_URL.toLowerCase()
-      ) {
-        return callback(null, true);
-      }
-
-      // 4. Check configured frontend origins
-      const originLower = origin.toLowerCase();
-      if (
-        allowedOrigins.includes('*') ||
-        allowedOrigins.some((allowed) => allowed === originLower || allowed === `https://${hostname}`)
-      ) {
-        return callback(null, true);
-      }
-
-      // 5. Default allow if no specific FRONTEND_ORIGIN was provided
-      if (allowedOrigins.length === 0) {
-        return callback(null, true);
-      }
-
-      // Safe reject without throwing an unhandled Error
-      return callback(null, false);
-    } catch {
-      return callback(null, false);
+    if (isOriginAllowed(origin)) {
+      return callback(null, true);
     }
+    return callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 204,
 };
 
 app.use(cors(corsOptions));
@@ -89,13 +120,15 @@ app.use('/api/health', healthRoutes);
 app.use('/health', healthRoutes);
 
 // Root route for sanity check
-app.get('/', (_req: Request, res: Response) => {
+app.get('/', (req: Request, res: Response) => {
   res.status(200).json({
     data: {
       service: 'gujranwala-food-craze-api',
       status: 'active',
+      timestamp: new Date().toISOString(),
     },
     error: null,
+    requestId: (req as any).requestId,
   });
 });
 

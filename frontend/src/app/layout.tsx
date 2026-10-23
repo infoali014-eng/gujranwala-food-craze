@@ -1,32 +1,35 @@
 import type { Metadata } from 'next';
-import { Bebas_Neue, Oswald, Lora, Inter } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import { SiteLinksProvider } from '@/context/SiteLinksContext';
+import { EnvCheck } from '@/components/ui/EnvCheck';
 
-const bebasNeue = Bebas_Neue({
-  weight: '400',
-  subsets: ['latin'],
+const bebasNeue = localFont({
+  src: '../fonts/BebasNeue-Regular.woff2',
   variable: '--font-bebas',
   display: 'swap',
+  fallback: ['Impact', 'Arial Black', 'sans-serif'],
 });
 
-const oswald = Oswald({
-  subsets: ['latin'],
+const oswald = localFont({
+  src: '../fonts/Oswald-Regular.woff2',
   variable: '--font-oswald',
   display: 'swap',
+  fallback: ['Arial Narrow', 'sans-serif'],
 });
 
-const lora = Lora({
-  subsets: ['latin'],
+const lora = localFont({
+  src: '../fonts/Lora-Regular.woff2',
   variable: '--font-lora',
   display: 'swap',
-  style: ['normal', 'italic'],
+  fallback: ['Georgia', 'serif'],
 });
 
-const inter = Inter({
-  subsets: ['latin'],
+const inter = localFont({
+  src: '../fonts/Inter-Regular.woff2',
   variable: '--font-inter',
   display: 'swap',
+  fallback: ['system-ui', 'sans-serif'],
 });
 
 export const metadata: Metadata = {
@@ -49,6 +52,7 @@ export default function RootLayout({
       className={`${bebasNeue.variable} ${oswald.variable} ${lora.variable} ${inter.variable}`}
     >
       <body className="bg-craze-cream text-craze-dark antialiased min-h-screen flex flex-col selection:bg-craze-amber selection:text-craze-dark">
+        <EnvCheck />
         <SiteLinksProvider>{children}</SiteLinksProvider>
       </body>
     </html>

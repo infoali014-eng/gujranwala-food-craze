@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { findLiveReviews, insertReview } from '../queries/reviews.queries';
+import { findLiveReviews, findAllReviews, insertReview } from '../queries/reviews.queries';
 import { sanitizeText } from '../utils/sanitize';
 import { hasProfanity } from '../utils/profanityFilter';
 import { CreateReviewInput } from '../validators/review.schema';
@@ -10,6 +10,16 @@ export async function getReviewsHandler(
   next: NextFunction
 ): Promise<void> {
   try {
+    const includeDeleted = req.query.includeDeleted === 'true';
+    if (includeDeleted) {
+      const allReviews = await findAllReviews(true);
+      res.status(200).json({
+        data: allReviews,
+        error: null,
+      });
+      return;
+    }
+
     const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
     const cursor = (req.query.cursor as string) || undefined;
 

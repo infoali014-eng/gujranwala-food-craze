@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Flame, Users } from 'lucide-react';
+import { getMemberStats } from '@/lib/api';
 import { COPY } from '@/lib/copy';
 
 interface MemberCounterProps {
@@ -9,19 +10,35 @@ interface MemberCounterProps {
 }
 
 export const MemberCounter: React.FC<MemberCounterProps> = ({ targetCount = 312 }) => {
+  const [actualTarget, setActualTarget] = useState(targetCount);
   const [displayCount, setDisplayCount] = useState(0);
 
   useEffect(() => {
-    let start = Math.max(0, targetCount - 80);
+    let mounted = true;
+    getMemberStats()
+      .then((res) => {
+        if (mounted && res.data) {
+          const total = res.data.total_display_count || res.data.joined_count;
+          if (total) setActualTarget(total);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let start = Math.max(0, actualTarget - 80);
     const duration = 1800; // ms
     const steps = 40;
-    const increment = (targetCount - start) / steps;
+    const increment = (actualTarget - start) / steps;
     const stepDuration = duration / steps;
 
     const timer = setInterval(() => {
       start += increment;
-      if (start >= targetCount) {
-        setDisplayCount(targetCount);
+      if (start >= actualTarget) {
+        setDisplayCount(actualTarget);
         clearInterval(timer);
       } else {
         setDisplayCount(Math.floor(start));
@@ -29,7 +46,7 @@ export const MemberCounter: React.FC<MemberCounterProps> = ({ targetCount = 312 
     }, stepDuration);
 
     return () => clearInterval(timer);
-  }, [targetCount]);
+  }, [actualTarget]);
 
   return (
     <section className="px-4 sm:px-6 py-6 max-w-4xl mx-auto">

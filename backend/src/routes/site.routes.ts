@@ -20,7 +20,8 @@ router.get('/stats/members', asyncHandler(getMembersStatsHandler));
 // GET /api/settings/links
 router.get('/settings/links', asyncHandler(getSiteSettingsHandler));
 
-// POST /api/track/click
+// POST /api/track/click and /api/track-click
 router.post('/track/click', validate(trackClickSchema), asyncHandler(trackClickHandler));
+router.post('/track-click', validate(trackClickSchema), asyncHandler(trackClickHandler));
 
 export default router;

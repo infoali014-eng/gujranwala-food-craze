@@ -1,6 +1,6 @@
 export interface ApiResponse<T> {
   data: T | null;
-  error: { message: string } | null;
+  error: { code?: string; message: string } | null;
 }
 
 export interface Review {
@@ -38,33 +38,42 @@ export interface SiteLinks {
   updated_at?: string;
 }
 
-export function getApiBaseUrl(): string | null {
+/**
+ * Resolves the API base URL in one central function:
+ * - If process.env.NEXT_PUBLIC_API_URL is set, use it (trim spaces and any trailing slash).
+ * - If not set and Topology is A (same domain / Vercel services), use /api relative prefix.
+ * - If not set and Topology is B (two projects), throw clear error code API_URL_MISSING.
+ * - Never fall back to localhost in production.
+ */
+export function getApiBase(): string {
   const envUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
   if (envUrl) {
     const clean = envUrl.replace(/\/+$/, '');
     return clean.endsWith('/api') ? clean : `${clean}/api`;
   }
 
-  // Server-side runtime inside Next.js when deployed as Vercel Services
+  // Topology A: single Vercel project with Services routing (same origin)
+  // In the browser, /api is routed to backend service.
+  // In Next.js server runtime, BACKEND_URL binding is injected by Vercel services.
   if (typeof window === 'undefined' && process.env.BACKEND_URL) {
     const backendUrl = process.env.BACKEND_URL.replace(/\/+$/, '');
     return backendUrl.endsWith('/api') ? backendUrl : `${backendUrl}/api`;
   }
 
-  // In browser on Vercel, default to same-origin /api routed by Vercel services
   if (typeof window !== 'undefined') {
     return '/api';
   }
 
-  // Never fall back to localhost in production server-side code
+  // Never fall back to localhost in production
   if (process.env.NODE_ENV === 'production') {
-    console.error('NEXT_PUBLIC_API_URL is not set');
-    return null;
+    throw new Error('API_URL_MISSING');
   }
 
   // Local development only fallback
   return 'http://localhost:5000/api';
 }
+
+export const getApiBaseUrl = getApiBase;
 
 // Single robust request helper used across the frontend
 export async function request<T>(
@@ -72,12 +81,25 @@ export async function request<T>(
   options: RequestInit = {},
   isRetry = false
 ): Promise<ApiResponse<T>> {
-  const baseUrl = getApiBaseUrl();
-  if (!baseUrl) {
+  let baseUrl: string;
+  try {
+    baseUrl = getApiBase();
+  } catch (err: any) {
+    if (err?.message === 'API_URL_MISSING') {
+      console.error('[API Error] NEXT_PUBLIC_API_URL is missing in production (Topology B)');
+      return {
+        data: null,
+        error: {
+          code: 'API_URL_MISSING',
+          message: 'Server connection URL set nahi hai. Please administrator se rabta karein.',
+        },
+      };
+    }
     return {
       data: null,
       error: {
-        message: 'Server connection URL set nahi hai. Please administrator se rabta karein.',
+        code: 'API_CONFIG_ERROR',
+        message: 'Server connection configuration error.',
       },
     };
   }
@@ -116,20 +138,29 @@ export async function request<T>(
       return {
         data: null,
         error: {
+          code: 'INVALID_JSON',
           message: 'Server abhi masla kar raha hai. Thori der baad dobara koshish karein.',
         },
       };
     }
 
     if (!res.ok) {
+      const errObj = json?.error;
+      const errorCode =
+        typeof errObj === 'object' && errObj?.code
+          ? errObj.code
+          : `HTTP_${res.status}`;
       const errorMessage =
-        typeof json.error === 'string'
-          ? json.error
-          : json.error?.message || `Request failed with status ${res.status}`;
+        typeof errObj === 'string'
+          ? errObj
+          : errObj?.message || `Request failed with status ${res.status}`;
 
       return {
         data: null,
-        error: { message: errorMessage },
+        error: {
+          code: errorCode,
+          message: errorMessage,
+        },
       };
     }
 
@@ -152,6 +183,7 @@ export async function request<T>(
     return {
       data: null,
       error: {
+        code: isAbort ? 'TIMEOUT' : 'NETWORK_ERROR',
         message: isAbort
           ? 'Server response mein waqt lag raha hai. Internet check karein.'
           : 'Server abhi masla kar raha hai. Thori der baad dobara koshish karein.',
@@ -162,7 +194,11 @@ export async function request<T>(
 
 // Public API
 export async function getHealth() {
-  return request<{ status: string; service: string; timestamp: string }>('/health');
+  return request<{ ok: boolean; envConfigured: boolean; missing?: string[] }>('/health');
+}
+
+export async function getDbHealth() {
+  return request<{ ok: boolean; errorCode?: string | null; hint?: string | null }>('/health/db');
 }
 
 export async function getReviews(limit = 20, cursor?: string) {

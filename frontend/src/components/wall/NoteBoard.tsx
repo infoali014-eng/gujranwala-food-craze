@@ -22,6 +22,25 @@ export const NoteBoard: React.FC<NoteBoardProps> = ({
   const [cursor, setCursor] = useState<string | null>(initialCursor);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
+  // Load fresh reviews from the database on client mount
+  React.useEffect(() => {
+    let mounted = true;
+    getReviews(12)
+      .then((res) => {
+        if (mounted && res.data?.reviews && res.data.reviews.length > 0) {
+          setReviews(res.data.reviews);
+          setCursor(res.data.nextCursor);
+        }
+      })
+      .catch((err) => {
+        console.warn('[NoteBoard] Could not load live reviews, keeping initial list:', err);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   // Load more notes using cursor pagination in batches of 12 for mobile performance
   const handleLoadMore = async () => {
     if (!cursor || isLoadingMore) return;

@@ -108,62 +108,29 @@ const fallbackReviews: Review[] = [
   },
 ];
 
-async function getInitialData() {
-  try {
-    const [dealRes, statsRes, reviewsRes] = await Promise.allSettled([
-      getCurrentDeal(),
-      getMemberStats(),
-      getReviews(6),
-    ]);
-
-    let deal: Deal | null = fallbackDeal;
-    let memberCount = 312;
-    let reviews: Review[] = fallbackReviews;
-
-    if (dealRes.status === 'fulfilled' && dealRes.value.data) {
-      deal = dealRes.value.data;
-    }
-
-    if (statsRes.status === 'fulfilled' && statsRes.value.data) {
-      memberCount =
-        statsRes.value.data.total_display_count || statsRes.value.data.joined_count;
-    }
-
-    if (reviewsRes.status === 'fulfilled' && reviewsRes.value.data?.reviews) {
-      reviews = reviewsRes.value.data.reviews;
-    }
-
-    return { deal, memberCount, reviews };
-  } catch {
-    return { deal: fallbackDeal, memberCount: 312, reviews: fallbackReviews };
-  }
-}
-
-export default async function LandingPage() {
-  const { deal, memberCount, reviews } = await getInitialData();
-
+export default function LandingPage() {
   return (
     <main className="min-h-screen bg-craze-cream text-craze-dark selection:bg-craze-amber selection:text-craze-dark">
       {/* Client-side URL source attribution tracker */}
       <LandingTracker />
 
       {/* 1. Hero on red background */}
-      <Hero memberCount={memberCount} />
+      <Hero memberCount={312} />
 
       {/* 2. Why join 3 cards */}
       <WhyJoin />
 
       {/* 3. Weekly deal banner with countdown */}
-      <DealBanner initialDeal={deal} />
+      <DealBanner initialDeal={fallbackDeal} />
 
       {/* 4. Live member counter with count-up animation */}
-      <MemberCounter targetCount={memberCount} />
+      <MemberCounter targetCount={312} />
 
       {/* 5. Menu highlights carousel */}
       <MenuCarousel />
 
       {/* 6. Craze Wall preview (6 latest sticky notes) */}
-      <WallPreview initialReviews={reviews} />
+      <WallPreview initialReviews={fallbackReviews} />
 
       {/* 7. Footer */}
       <Footer />

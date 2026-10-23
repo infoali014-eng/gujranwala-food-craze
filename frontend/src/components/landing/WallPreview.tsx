@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Review } from '@/lib/api';
+import React, { useEffect, useState } from 'react';
+import { Review, getReviews } from '@/lib/api';
 import { StickyNote } from '@/components/wall/StickyNote';
 import { Button } from '@/components/ui/Button';
 import { Section } from '@/components/ui/Section';
@@ -12,6 +12,24 @@ interface WallPreviewProps {
 }
 
 export const WallPreview: React.FC<WallPreviewProps> = ({ initialReviews = [] }) => {
+  const [reviews, setReviews] = useState<Review[]>(initialReviews);
+
+  useEffect(() => {
+    let mounted = true;
+    getReviews(6)
+      .then((res) => {
+        if (mounted && res.data?.reviews && res.data.reviews.length > 0) {
+          setReviews(res.data.reviews);
+        }
+      })
+      .catch(() => {
+        // Keep fallback reviews on error
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
   return (
     <Section
       id="craze-wall-preview"

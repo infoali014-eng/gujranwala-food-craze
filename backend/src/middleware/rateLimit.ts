@@ -1,23 +1,60 @@
+import { Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
+import { ENV } from '../config/env';
 
-export const reviewRateLimiter = rateLimit({
+const reviewLimit = ENV.REVIEW_RATE_LIMIT_PER_HOUR;
+
+const reviewLimiterInstance = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // 10 reviews per IP per hour
+  max: reviewLimit,
   standardHeaders: true,
   legacyHeaders: false,
   validate: { trustProxy: false },
   handler: (_req, res) => {
     res.status(429).json({
       data: null,
-      error: 'Aap is ghante mein mazeed reviews submit nahi kar saktay. Please thori der baad try karein.',
+      error: {
+        code: 'RATE_LIMIT_EXCEEDED',
+        message: 'Aap bohat jaldi note bhej rahe hain. Thori der baad try karein.',
+      },
     });
   },
 });
 
-export const generalRateLimiter = rateLimit({
+export const reviewRateLimiter = (req: Request, res: Response, next: NextFunction): void => {
+  try {
+    reviewLimiterInstance(req, res, (err) => {
+      if (err) {
+        console.error('[RateLimiter Error - continuing request]:', err);
+        return next();
+      }
+      next();
+    });
+  } catch (err) {
+    console.error('[RateLimiter Exception - continuing request]:', err);
+    next();
+  }
+};
+
+const generalLimiterInstance = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 mins
-  max: 300, // 300 requests per window
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false,
   validate: { trustProxy: false },
 });
+
+export const generalRateLimiter = (req: Request, res: Response, next: NextFunction): void => {
+  try {
+    generalLimiterInstance(req, res, (err) => {
+      if (err) {
+        console.error('[GeneralRateLimiter Error - continuing request]:', err);
+        return next();
+      }
+      next();
+    });
+  } catch (err) {
+    console.error('[GeneralRateLimiter Exception - continuing request]:', err);
+    next();
+  }
+};

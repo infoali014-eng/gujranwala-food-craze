@@ -59,29 +59,30 @@ export async function updateWeeklyDeal(
 ): Promise<DealRecord> {
   const supabase = getSupabase();
 
-  if (supabase) {
-    // If a deal exists, update it, else insert
-    const current = await findCurrentDeal();
-    if (current) {
-      const { data, error } = await supabase
-        .from('deals')
-        .update(dealData)
-        .eq('id', current.id)
-        .select('*')
-        .single();
-      if (error) throw new Error(error.message);
-      return data as DealRecord;
-    } else {
-      const { data, error } = await supabase
-        .from('deals')
-        .insert({
-          ...dealData,
-          is_active: true,
-        })
-        .select('*')
-        .single();
-      if (error) throw new Error(error.message);
-      return data as DealRecord;
+  if (supabase && !process.env.SUPABASE_URL?.includes('dummy')) {
+    try {
+      const current = await findCurrentDeal();
+      if (current) {
+        const { data, error } = await supabase
+          .from('deals')
+          .update(dealData)
+          .eq('id', current.id)
+          .select('*')
+          .single();
+        if (!error && data) return data as DealRecord;
+      } else {
+        const { data, error } = await supabase
+          .from('deals')
+          .insert({
+            ...dealData,
+            is_active: true,
+          })
+          .select('*')
+          .single();
+        if (!error && data) return data as DealRecord;
+      }
+    } catch (err) {
+      console.error('[Supabase updateWeeklyDeal Exception]:', err);
     }
   }
 

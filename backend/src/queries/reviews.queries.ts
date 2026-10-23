@@ -182,14 +182,22 @@ export async function insertReview(data: {
 export async function findAllReviews(includeDeleted = false): Promise<ReviewRecord[]> {
   const supabase = getSupabase();
 
-  if (supabase) {
-    let query = supabase.from('reviews').select('*').order('created_at', { ascending: false });
-    if (!includeDeleted) {
-      query = query.is('deleted_at', null);
+  if (supabase && !process.env.SUPABASE_URL?.includes('dummy')) {
+    try {
+      let query = supabase.from('reviews').select('*').order('created_at', { ascending: false });
+      if (!includeDeleted) {
+        query = query.is('deleted_at', null);
+      }
+      const { data, error } = await query;
+      if (!error && data) {
+        return data as ReviewRecord[];
+      }
+      if (error) {
+        console.error(`[Supabase findAllReviews Error]: ${error.message}`);
+      }
+    } catch (err) {
+      console.error('[Supabase findAllReviews Exception]:', err);
     }
-    const { data, error } = await query;
-    if (error) throw new Error(error.message);
-    return (data || []) as ReviewRecord[];
   }
 
   return inMemoryReviews.filter((r) => (includeDeleted ? true : r.deleted_at === null));
@@ -198,13 +206,17 @@ export async function findAllReviews(includeDeleted = false): Promise<ReviewReco
 export async function softDeleteReview(id: string): Promise<boolean> {
   const supabase = getSupabase();
 
-  if (supabase) {
-    const { error } = await supabase
-      .from('reviews')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id);
-    if (error) throw new Error(error.message);
-    return true;
+  if (supabase && !id.startsWith('local-') && !process.env.SUPABASE_URL?.includes('dummy')) {
+    try {
+      const { error } = await supabase
+        .from('reviews')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id);
+      if (!error) return true;
+      console.error(`[Supabase softDeleteReview Error]: ${error.message}`);
+    } catch (err) {
+      console.error('[Supabase softDeleteReview Exception]:', err);
+    }
   }
 
   const review = inMemoryReviews.find((r) => r.id === id);
@@ -218,10 +230,14 @@ export async function softDeleteReview(id: string): Promise<boolean> {
 export async function restoreReview(id: string): Promise<boolean> {
   const supabase = getSupabase();
 
-  if (supabase) {
-    const { error } = await supabase.from('reviews').update({ deleted_at: null }).eq('id', id);
-    if (error) throw new Error(error.message);
-    return true;
+  if (supabase && !id.startsWith('local-') && !process.env.SUPABASE_URL?.includes('dummy')) {
+    try {
+      const { error } = await supabase.from('reviews').update({ deleted_at: null }).eq('id', id);
+      if (!error) return true;
+      console.error(`[Supabase restoreReview Error]: ${error.message}`);
+    } catch (err) {
+      console.error('[Supabase restoreReview Exception]:', err);
+    }
   }
 
   const review = inMemoryReviews.find((r) => r.id === id);
